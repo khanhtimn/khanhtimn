@@ -1,0 +1,37 @@
+[package]
+name = "khanhtimn_dev_leptos"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+khanhtimn_dev_bevy = { path = "../bevy", optional = true }
+leptos = { version = "0.8", features = ["nightly"] }
+leptos_router = { version = "0.8", features = ["nightly"] }
+axum = { version = "0.8", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
+leptos_axum = { version = "0.8", optional = true }
+leptos_meta = { version = "0.8" }
+tokio = { version = "1", features = ["rt-multi-thread"], optional = true }
+wasm-bindgen = { version = "0.2.106", optional = true }
+leptos-bevy-canvas = { version = "0.4.0", features = ["bevy_state"], optional = true }
+leptos-use = "0.18.0"
+
+[features]
+hydrate = [
+    "leptos/hydrate",
+    "dep:console_error_panic_hook",
+    "dep:wasm-bindgen",
+    "dep:khanhtimn_dev_bevy",
+    "dep:leptos-bevy-canvas",
+]
+ssr = [
+    "dep:axum",
+    "dep:tokio",
+    "dep:leptos_axum",
+    "leptos/ssr",
+    "leptos_meta/ssr",
+    "leptos_router/ssr",
+]

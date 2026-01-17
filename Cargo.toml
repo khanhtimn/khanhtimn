@@ -1,40 +1,8 @@
-[package]
-name = "khanhtimn_dev"
-version = "0.1.0"
-edition = "2024"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[dependencies]
-leptos = { version = "0.8", features = ["nightly"] }
-leptos_router = { version = "0.8", features = ["nightly"] }
-axum = { version = "0.8", optional = true }
-console_error_panic_hook = { version = "0.1", optional = true }
-leptos_axum = { version = "0.8", optional = true }
-leptos_meta = { version = "0.8" }
-tokio = { version = "1", features = ["rt-multi-thread"], optional = true }
-wasm-bindgen = { version = "0.2.106", optional = true }
-bevy = { version = "0.17", default-features = false }
-leptos-bevy-canvas = { version = "0.4.0", features = ["bevy_state"] }
-leptos-use = "0.18.0"
-getrandom = { version = "0.3.4", features = ["wasm_js"] }
-rand_core = "0.9.5"
-uuid = { version = "1.19.0", features = ["rng-getrandom"] }
-
-[features]
-hydrate = [
-    "leptos/hydrate",
-    "dep:console_error_panic_hook",
-    "dep:wasm-bindgen",
-]
-ssr = [
-    "dep:axum",
-    "dep:tokio",
-    "dep:leptos_axum",
-    "leptos/ssr",
-    "leptos_meta/ssr",
-    "leptos_router/ssr",
+[workspace]
+resolver = "3"
+members = [
+    "crates/leptos",
+    "crates/bevy",
 ]
 
 # Defines a size-optimized profile for the WASM bundle in release mode
@@ -45,9 +13,17 @@ lto = true
 codegen-units = 1
 panic = "abort"
 
-[package.metadata.leptos]
+[[workspace.metadata.leptos]]
+name = "khanhtimn_dev_leptos"
+
 # The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
-output-name = "khanhtimn_dev"
+output-name = "khanhtimn_dev_leptos"
+
+# The package in the workspace that contains the server binary (must have `package.name`)
+bin-package = "khanhtimn_dev_leptos"
+
+# The package in the workspace that contains the frontend lib (must have `package.name`)
+lib-package = "khanhtimn_dev_leptos"
 
 # The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
 site-root = "target/site"

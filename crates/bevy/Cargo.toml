@@ -1,0 +1,27 @@
+[package]
+name = "khanhtimn_dev_bevy"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = { version = "0.17", default-features = false, features = [
+    "bevy_asset",
+    "bevy_color",
+    "bevy_core_pipeline",
+    "bevy_mesh_picking_backend",
+    "bevy_pbr",
+    "bevy_picking",
+    "bevy_render",
+    "bevy_scene",
+    "bevy_state",
+    "bevy_window",
+    "bevy_winit",
+    "default_font",
+    "multi_threaded",
+    "png",
+    "webgl2",
+] }
+leptos-bevy-canvas = { version = "0.4.0", features = ["bevy_state"] }
+getrandom = { version = "0.3.4", features = ["wasm_js"] }
+rand_core = "0.9.5"
+uuid = { version = "1.19.0", features = ["rng-getrandom"] }
