@@ -14,8 +14,9 @@ RUN cp cargo-binstall /usr/local/cargo/bin
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends clang
 
-# Install cargo-leptos
+# Install cargo-leptos and wasm-bindgen-cli
 RUN cargo binstall cargo-leptos -y
+RUN cargo binstall wasm-bindgen-cli -y
 
 # Add the WASM target
 RUN rustup target add wasm32-unknown-unknown
@@ -36,7 +37,6 @@ RUN apt-get update -y \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
 
-# -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
 # Copy the server binary to the /app directory
 COPY --from=builder /app/target/release/khanhtimn_dev_leptos /app/
 
@@ -52,6 +52,5 @@ ENV LEPTOS_SITE_ADDR="0.0.0.0:8080"
 ENV LEPTOS_SITE_ROOT="site"
 EXPOSE 8080
 
-# -- NB: update binary name from "leptos_start" to match your app name in Cargo.toml --
 # Run the server
 CMD ["/app/khanhtimn_dev_leptos"]

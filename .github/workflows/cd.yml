@@ -1,0 +1,140 @@
+name: CD
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: khanhtimn/khanhtimn_dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install mold linker
+        uses: rui314/setup-mold@v1
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-binstall
+        run: |
+          wget https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz
+          tar -xvf cargo-binstall-x86_64-unknown-linux-musl.tgz
+          sudo mv cargo-binstall /usr/local/bin/
+
+      - name: Install cargo-leptos
+        run: cargo binstall cargo-leptos -y
+
+      - name: Install wasm-bindgen-cli
+        run: cargo binstall wasm-bindgen-cli -y
+
+      - name: Build
+        run: cargo leptos build --release
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-binary
+          path: target/release/khanhtimn_dev_leptos
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: target/site
+
+      - name: Upload Cargo.toml
+        uses: actions/upload-artifact@v4
+        with:
+          name: cargo-toml
+          path: Cargo.toml
+
+  push:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Download binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: server-binary
+          path: ./app
+
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: ./app/site
+
+      - name: Download Cargo.toml
+        uses: actions/download-artifact@v4
+        with:
+          name: cargo-toml
+          path: ./app
+
+      - name: Make binary executable
+        run: chmod +x ./app/khanhtimn_dev_leptos
+
+      - name: Create Dockerfile
+        run: |
+          cat <<'EOF' > Dockerfile
+          FROM debian:bookworm-slim
+          WORKDIR /app
+          RUN apt-get update -y \
+            && apt-get install -y --no-install-recommends openssl ca-certificates \
+            && apt-get autoremove -y \
+            && apt-get clean -y \
+            && rm -rf /var/lib/apt/lists/*
+          COPY app/khanhtimn_dev_leptos /app/
+          COPY app/site /app/site
+          COPY app/Cargo.toml /app/
+          ENV RUST_LOG="info"
+          ENV LEPTOS_SITE_ADDR="0.0.0.0:8080"
+          ENV LEPTOS_SITE_ROOT="site"
+          EXPOSE 8080
+          CMD ["/app/khanhtimn_dev_leptos"]
+          EOF
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: khanhtimn
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
