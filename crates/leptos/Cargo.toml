@@ -16,7 +16,7 @@ leptos_axum = { version = "0.8", optional = true }
 leptos_meta = { version = "0.8" }
 tokio = { version = "1", features = ["rt-multi-thread"], optional = true }
 wasm-bindgen = { version = "0.2.106", optional = true }
-leptos-bevy-canvas = { version = "0.4.0", features = ["bevy_state"], optional = true }
+leptos-bevy-canvas = { git = "https://github.com/Synphonyte/leptos-bevy-canvas", branch = "dependabot/cargo/bevy-0.18", features = ["bevy_state"], optional = true}
 leptos-use = "0.18.0"
 
 [features]
