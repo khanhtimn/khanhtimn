@@ -4,7 +4,7 @@ use bevy::window::WindowResolution;
 use bevy_enhanced_input::prelude::*;
 
 const GROUND_LEVEL: f32 = -200.0;
-const GROUND_WIDTH: f32 = 1200.0;
+const GROUND_WIDTH: f32 = 800.0;
 const PLAYER: Vec2 = Vec2::new(50.0, 100.0);
 const JUMP_VELOCITY: f32 = 300.0;
 const GRAVITY: f32 = 900.0;
@@ -59,7 +59,7 @@ fn setup(
     commands.spawn((
         Player,
         Mesh2d(meshes.add(Rectangle::new(PLAYER.x, PLAYER.y))),
-        // MeshMaterial2d(materials.add(Color::srgb(1.0, 0.0, 0.5))),
+        MeshMaterial2d(materials.add(Color::srgb(1.0, 0.0, 0.5))),
         Transform::from_translation(Vec3::Y * (GROUND_LEVEL + 500.0)),
         PlayerPhysics::default(),
         actions!(Player[
@@ -79,7 +79,7 @@ fn setup(
                 bindings![KeyCode::Space, KeyCode::KeyW, KeyCode::ArrowUp, GamepadButton::South],
             )
         ]),
-        Sprite::from_image(asset_server.load("bevy_bird_dark.png")),
+        // Sprite::from_image(asset_server.load("bevy_bird_dark.png")),
     ));
 }
 

@@ -1,12 +1,11 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  khanhtimn_dev:
+    image: khanhtimn/khanhtimn_dev:latest
+    container_name: khanhtimn_dev
+    restart: unless-stopped
     ports:
       - "6969:8080"
     environment:
       - RUST_LOG=info
       - LEPTOS_SITE_ADDR=0.0.0.0:8080
       - LEPTOS_SITE_ROOT=site
-    restart: unless-stopped
