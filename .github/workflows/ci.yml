@@ -179,7 +179,7 @@ jobs:
         run: cargo binstall cargo-leptos -y
 
       - name: Install wasm-bindgen-cli
-        run: cargo binstall wasm-bindgen-cli -y
+        run: cargo binstall wasm-bindgen-cli@0.2.106 -y
 
       - name: Check SSR build
         run: cargo check --locked --package khanhtimn_dev_leptos --no-default-features --features ssr --profile ci
