@@ -3605,7 +3605,7 @@ dependencies = [
  "bevy",
  "bevy_enhanced_input",
  "getrandom",
- "rand_core",
+ "rand",
  "tracing",
  "uuid",
 ]

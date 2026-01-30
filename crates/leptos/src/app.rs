@@ -6,7 +6,7 @@ use leptos_router::{
 };
 
 #[cfg(feature = "hydrate")]
-use khanhtimn_dev_bevy::{RENDER_HEIGHT, RENDER_WIDTH, init_bevy_app};
+use khanhtimn_dev_bevy::init_bevy_app;
 #[cfg(feature = "hydrate")]
 use leptos_bevy_canvas::prelude::*;
 
@@ -89,8 +89,8 @@ fn BevyCanvasWrapper() -> impl IntoView {
     view! {
         <div
             class="border rounded-lg overflow-hidden bg-gray-800"
-            style:width=format!("{}px", 800)
-            style:height=format!("{}px", 600)
+            style:width=format!("{}px", 1280)
+            style:height=format!("{}px", 960)
         >
             {move || {
                 if is_mounted.get() {
@@ -100,8 +100,8 @@ fn BevyCanvasWrapper() -> impl IntoView {
                             <BevyCanvas
                                 init=move || init_bevy_app()
                                 {..}
-                                width=format!("{}", RENDER_WIDTH)
-                                height=format!("{}", RENDER_HEIGHT)
+                                width=format!("{}", 1280)
+                                height=format!("{}", 960)
                             />
                         }.into_any()
                     }

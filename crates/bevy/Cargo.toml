@@ -8,7 +8,7 @@ bevy = { version = "0.18", default-features = false, features = ["2d"] }
 bevy_enhanced_input = { version = "0.22" }
 
 getrandom = { version = "0.3.4", features = ["wasm_js"] }
-rand_core = "0.9.5"
+rand = "0.9"
 uuid = { version = "1.19.0", features = ["rng-getrandom"] }
 
 # Compile out low-severity logs to improve performance.
