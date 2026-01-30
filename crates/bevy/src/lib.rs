@@ -2,6 +2,10 @@
 //!
 //! This module re-exports the main game initialization and configuration
 //! for use in the Leptos-based web frontend.
+// Support configuring Bevy lints within code.
+#![cfg_attr(bevy_lint, feature(register_tool), register_tool(bevy))]
+// Disable console on Windows for non-dev builds.
+#![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
@@ -9,6 +13,8 @@ use bevy::prelude::*;
 mod asset_tracking;
 mod audio;
 mod demo;
+#[cfg(feature = "dev")]
+mod dev_tools;
 mod menus;
 mod screens;
 mod theme;
@@ -42,6 +48,8 @@ pub fn init_bevy_app() -> App {
         asset_tracking::plugin,
         audio::plugin,
         demo::plugin,
+        #[cfg(feature = "dev")]
+        dev_tools::plugin,
         menus::plugin,
         screens::plugin,
         theme::plugin,

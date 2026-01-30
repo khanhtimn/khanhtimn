@@ -48,11 +48,11 @@ fn apply_movement(movement: On<Fire<Movement>>, mut query: Query<&mut Physics>) 
 
 /// Observer that applies jump when grounded.
 fn apply_jump(jump: On<Fire<Jump>>, mut query: Query<&mut Physics>) {
-    if let Ok(mut physics) = query.get_mut(jump.context) {
-        if physics.is_grounded {
-            physics.velocity.y = JUMP_VELOCITY;
-            physics.is_grounded = false;
-        }
+    if let Ok(mut physics) = query.get_mut(jump.context)
+        && physics.is_grounded
+    {
+        physics.velocity.y = JUMP_VELOCITY;
+        physics.is_grounded = false;
     }
 }
 

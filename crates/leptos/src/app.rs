@@ -15,14 +15,14 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
         <!DOCTYPE html>
         <html lang="en">
             <head>
-                <meta charset="utf-8"/>
-                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <AutoReload options=options.clone() />
-                <HydrationScripts options/>
-                <MetaTags/>
+                <HydrationScripts options />
+                <MetaTags />
             </head>
             <body>
-                <App/>
+                <App />
             </body>
         </html>
     }
@@ -36,16 +36,16 @@ pub fn App() -> impl IntoView {
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/khanhtimn_dev_leptos.css"/>
+        <Stylesheet id="leptos" href="/pkg/khanhtimn_dev_leptos.css" />
 
         // sets the document title
-        <Title text="Welcome to Leptos"/>
+        <Title text="Welcome to Leptos" />
 
         // content for this welcome page
         <Router>
             <main>
                 <Routes fallback=|| "Page not found.".into_view()>
-                    <Route path=StaticSegment("") view=HomePage/>
+                    <Route path=StaticSegment("") view=HomePage />
                 </Routes>
             </main>
         </Router>
@@ -64,8 +64,12 @@ fn HomePage() -> impl IntoView {
             <h1 class="text-2xl font-bold mb-4">"Welcome to Leptos with Bevy!"</h1>
 
             <div class="mb-4">
-                <button on:click=on_click class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    "Click Me: " {count}
+                <button
+                    on:click=on_click
+                    class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                    "Click Me: "
+                    {count}
                 </button>
             </div>
 
@@ -78,13 +82,9 @@ fn HomePage() -> impl IntoView {
 fn BevyCanvasWrapper() -> impl IntoView {
     let is_mounted = RwSignal::new(false);
 
-    // Effect runs only on client after hydration
-    #[cfg(feature = "hydrate")]
-    {
-        Effect::new(move |_| {
-            is_mounted.set(true);
-        });
-    }
+    Effect::new(move |_| {
+        is_mounted.set(true);
+    });
 
     view! {
         <div
@@ -92,8 +92,17 @@ fn BevyCanvasWrapper() -> impl IntoView {
             style:width=format!("{}px", 1280)
             style:height=format!("{}px", 960)
         >
-            {move || {
-                if is_mounted.get() {
+            <Show
+                when=move || is_mounted.get()
+                fallback=move || {
+                    view! {
+                        <div class="flex items-center justify-center w-full h-full">
+                            <p class="text-gray-400">"Loading Bevy canvas..."</p>
+                        </div>
+                    }
+                }
+            >
+                {move || {
                     #[cfg(feature = "hydrate")]
                     {
                         view! {
@@ -103,25 +112,10 @@ fn BevyCanvasWrapper() -> impl IntoView {
                                 width=format!("{}", 1280)
                                 height=format!("{}", 960)
                             />
-                        }.into_any()
+                        }
                     }
-                    #[cfg(not(feature = "hydrate"))]
-                    {
-                        // This branch should never be reached on server
-                        view! {
-                            <div class="flex items-center justify-center w-full h-full">
-                                <p class="text-gray-400">"Loading Bevy canvas..."</p>
-                            </div>
-                        }.into_any()
-                    }
-                } else {
-                    view! {
-                        <div class="flex items-center justify-center w-full h-full">
-                            <p class="text-gray-400">"Loading Bevy canvas..."</p>
-                        </div>
-                    }.into_any()
-                }
-            }}
+                }}
+            </Show>
         </div>
     }
 }
