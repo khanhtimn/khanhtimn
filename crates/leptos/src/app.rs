@@ -6,7 +6,7 @@ use leptos_router::{
 };
 
 #[cfg(feature = "hydrate")]
-use khanhtimn_dev_bevy::init_bevy_app;
+use khanhtimn_dev_client::init_bevy_app;
 #[cfg(feature = "hydrate")]
 use leptos_bevy_canvas::prelude::*;
 

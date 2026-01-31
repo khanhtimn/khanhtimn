@@ -2,7 +2,9 @@
 resolver = "3"
 members = [
     "crates/leptos",
-    "crates/bevy",
+    "crates/game_common",
+    "crates/game_client",
+    "crates/game_server",
 ]
 
 # Compile with Performance Optimizations:

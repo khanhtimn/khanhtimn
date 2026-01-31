@@ -7,7 +7,7 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-khanhtimn_dev_bevy = { path = "../bevy", optional = true }
+khanhtimn_dev_client = { path = "../game_client", optional = true }
 leptos = { version = "0.8", features = ["nightly"] }
 leptos_router = { version = "0.8", features = ["nightly"] }
 axum = { version = "0.8", optional = true }
@@ -16,7 +16,9 @@ leptos_axum = { version = "0.8", optional = true }
 leptos_meta = { version = "0.8" }
 tokio = { version = "1", features = ["rt-multi-thread"], optional = true }
 wasm-bindgen = { version = "0.2.106", optional = true }
-leptos-bevy-canvas = { git = "https://github.com/Synphonyte/leptos-bevy-canvas", branch = "dependabot/cargo/bevy-0.18", features = ["bevy_state"], optional = true}
+leptos-bevy-canvas = { git = "https://github.com/Synphonyte/leptos-bevy-canvas", branch = "dependabot/cargo/bevy-0.18", features = [
+    "bevy_state",
+], optional = true }
 leptos-use = "0.18.0"
 
 [features]
@@ -24,7 +26,7 @@ hydrate = [
     "leptos/hydrate",
     "dep:console_error_panic_hook",
     "dep:wasm-bindgen",
-    "dep:khanhtimn_dev_bevy",
+    "dep:khanhtimn_dev_client",
     "dep:leptos-bevy-canvas",
 ]
 ssr = [

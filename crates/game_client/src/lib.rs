@@ -1,0 +1,142 @@
+//! Bevy game client for WASM with WebTransport networking.
+//!
+//! This crate provides the client-side game logic that runs in the browser.
+//! It connects to the game server via WebTransport and renders the game state.
+
+use bevy::asset::AssetMetaCheck;
+use bevy::prelude::*;
+use bevy_replicon::prelude::*;
+use bevy_replicon_renet2::RepliconRenetPlugins;
+use khanhtimn_dev_common::CommonGamePlugin;
+
+mod audio;
+mod connection;
+mod demo;
+mod input;
+mod menu;
+mod screens;
+mod singleplayer;
+mod theme;
+
+use bevy_renet2::netcode::ServerCertHash;
+
+// Re-export for external configuration
+pub use bevy_renet2::netcode::ServerCertHash as CertHash;
+pub use screens::{GameMode, GameScreen};
+
+/// Configuration for connecting to the game server.
+#[derive(Resource, Clone)]
+pub struct ServerConfig {
+    /// The WebTransport URL to connect to (e.g., "https://localhost:4433").
+    pub url: url::Url,
+    /// Server certificate hashes for self-signed certificates.
+    /// Leave empty to use standard PKI validation.
+    pub cert_hashes: Vec<ServerCertHash>,
+}
+
+/// High-level groupings of systems for the app in the `Update` schedule.
+#[derive(SystemSet, Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
+pub enum AppSystems {
+    /// Tick timers.
+    TickTimers,
+    /// Record player input.
+    RecordInput,
+    /// Do everything else.
+    Update,
+}
+
+/// Whether or not the game is paused.
+#[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
+pub struct Pause(pub bool);
+
+/// A system set for systems that shouldn't run while the game is paused.
+#[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct PausableSystems;
+
+pub fn init_bevy_app() -> App {
+    let dev_cert_hash = ServerCertHash {
+        hash: [
+            52, 32, 180, 102, 1, 149, 62, 88, 60, 61, 158, 250, 2, 124, 132, 114, 71, 233, 118,
+            143, 192, 237, 36, 190, 156, 199, 112, 10, 129, 229, 158, 56,
+        ],
+    };
+
+    init_bevy_app_with_config(ServerConfig {
+        url: url::Url::parse("https://127.0.0.1:4433/").unwrap(),
+        cert_hashes: vec![dev_cert_hash],
+    })
+}
+
+/// Initialize the Bevy app with a custom server URL (no cert hashes - uses PKI).
+pub fn init_bevy_app_with_server(server_url: String) -> App {
+    init_bevy_app_with_config(ServerConfig {
+        url: url::Url::parse(&server_url).unwrap(),
+        cert_hashes: vec![],
+    })
+}
+
+/// Initialize the Bevy app with full server configuration.
+pub fn init_bevy_app_with_config(config: ServerConfig) -> App {
+    let mut app = App::new();
+
+    // Store server config
+    app.insert_resource(config);
+
+    // Bevy plugins with WASM-friendly configuration
+    app.add_plugins(
+        DefaultPlugins
+            .set(AssetPlugin {
+                meta_check: AssetMetaCheck::Never,
+                ..default()
+            })
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    focused: false,
+                    canvas: Some("#bevy_canvas".into()),
+                    fit_canvas_to_parent: true,
+                    ..default()
+                }),
+                ..default()
+            }),
+    );
+
+    // Networking plugins
+    app.add_plugins((RepliconPlugins, RepliconRenetPlugins, CommonGamePlugin));
+
+    // Game plugins - order matters!
+    // singleplayer adds EnhancedInputPlugin, so it must come before input
+    app.add_plugins((
+        audio::plugin,
+        screens::plugin,
+        menu::plugin,
+        singleplayer::plugin,
+        input::plugin,
+        connection::plugin,
+        theme::plugin,
+        demo::plugin,
+    ));
+
+    // Configure system sets
+    app.configure_sets(
+        Update,
+        (
+            AppSystems::TickTimers,
+            AppSystems::RecordInput,
+            AppSystems::Update,
+        )
+            .chain(),
+    );
+
+    // Pause state
+    app.init_state::<Pause>();
+    app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
+
+    // Camera
+    app.add_systems(Startup, spawn_camera);
+
+    app
+}
+
+fn spawn_camera(mut commands: Commands) {
+    commands.spawn((Name::new("Camera"), Camera2d));
+}
