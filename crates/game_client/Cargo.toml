@@ -1,5 +1,5 @@
 [package]
-name = "khanhtimn_dev_client"
+name = "game_client"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,7 +7,7 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-khanhtimn_dev_common = { path = "../game_common", features = ["client"] }
+game_common = { path = "../game_common", features = ["client"] }
 
 bevy = { version = "0.18", default-features = false, features = ["2d"] }
 bevy_replicon_renet2 = { version = "0.13", default-features = false, features = [

@@ -4,7 +4,7 @@
 //! separate events to the server for movement and jump.
 
 use bevy::prelude::*;
-use khanhtimn_dev_common::{
+use game_common::{
     Jump, Movement, PlayerJumpInput, PlayerMovementInput, bevy_enhanced_input::prelude::*,
     bevy_replicon::prelude::*,
 };
@@ -45,7 +45,7 @@ fn setup_multiplayer_input(mut commands: Commands) {
             ),
             (
                 Action::<Jump>::new(),
-                bindings![KeyCode::Space, KeyCode::KeyW, GamepadButton::South],
+                bindings![KeyCode::Space, KeyCode::KeyW, KeyCode::ArrowUp, GamepadButton::South],
             )
         ]),
     ));

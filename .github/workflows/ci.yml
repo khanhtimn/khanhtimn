@@ -58,7 +58,7 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
       - name: Check documentation
-        run: cargo doc --locked --workspace --profile ci --all-features --document-private-items --no-deps
+        run: cargo doc --locked --package game_server --package game_common --package khanhtimn_dev --features ssr --profile ci --document-private-items --no-deps
 
   # Run Clippy lints.
   clippy-lints:
@@ -73,6 +73,7 @@ jobs:
         uses: dtolnay/rust-toolchain@nightly
         with:
           components: clippy
+          targets: wasm32-unknown-unknown
 
       - name: Restore Rust cache
         id: cache
@@ -84,10 +85,13 @@ jobs:
       - name: Install build dependencies
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
-      - name: Run Clippy lints
-        run: cargo clippy --locked --workspace --all-targets --profile ci --all-features
+      - name: Run Clippy lints (native)
+        run: cargo clippy --locked --package game_server --package khanhtimn_dev --features ssr --package game_common --all-targets --profile ci
 
-  # Run Bevy lints on the bevy crate.
+      - name: Run Clippy lints (WASM client)
+        run: cargo clippy --locked --package game_client --target wasm32-unknown-unknown --profile ci
+
+  # Run Bevy lints on game packages.
   bevy-lints:
     name: Bevy lints
     runs-on: ubuntu-latest
@@ -112,8 +116,11 @@ jobs:
       - name: Install build dependencies
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
-      - name: Run Bevy lints
-        run: bevy_lint --locked --package khanhtimn_dev_bevy --all-targets --profile ci
+      - name: Run Bevy lints (game_server)
+        run: bevy_lint --locked --package game_server --all-targets --profile ci
+
+      - name: Run Bevy lints (game_common)
+        run: bevy_lint --locked --package game_common --all-targets --profile ci
 
   # Run tests.
   tests:
@@ -143,9 +150,9 @@ jobs:
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
 
       - name: Run tests
-        run: cargo test --locked --workspace --all-targets --profile ci --no-fail-fast
+        run: cargo test --locked --package game_server --package game_common --package khanhtimn_dev --all-targets --profile ci --no-fail-fast
 
-  # Check that the Leptos build compiles (includes WASM for hydrate).
+  # Check that the Leptos build and game_server compile.
   check-build:
     name: Check build
     runs-on: ubuntu-latest
@@ -181,11 +188,14 @@ jobs:
       - name: Install wasm-bindgen-cli
         run: cargo binstall wasm-bindgen-cli@0.2.106 -y
 
-      - name: Check SSR build
-        run: cargo check --locked --package khanhtimn_dev_leptos --no-default-features --features ssr --profile ci
+      - name: Check game_server build
+        run: cargo check --locked --package game_server --profile ci
 
-      - name: Check WASM/hydrate build
-        run: cargo check --locked --package khanhtimn_dev_leptos --no-default-features --features hydrate --target wasm32-unknown-unknown --profile ci
+      - name: Check SSR build
+        run: cargo check --locked --package khanhtimn_dev --no-default-features --features ssr --profile ci
+
+      - name: Check WASM/hydrate build (includes game_client)
+        run: cargo check --locked --package khanhtimn_dev --no-default-features --features hydrate --target wasm32-unknown-unknown --profile ci
 
       - name: Build with cargo-leptos
         run: cargo leptos build

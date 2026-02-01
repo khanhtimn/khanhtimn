@@ -4,7 +4,7 @@
 //! replicated positions from the server.
 
 use bevy::prelude::*;
-use khanhtimn_dev_common::{
+use game_common::{
     components::{Player, PlayerPosition},
     protocol::{GROUND_LEVEL, GROUND_WIDTH},
 };

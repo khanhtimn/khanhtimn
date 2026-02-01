@@ -1,5 +1,5 @@
 [package]
-name = "khanhtimn_dev_server"
+name = "game_server"
 version = "0.1.0"
 edition = "2024"
 
@@ -8,7 +8,7 @@ name = "game_server"
 path = "src/main.rs"
 
 [dependencies]
-khanhtimn_dev_common = { path = "../game_common", features = ["server"] }
+game_common = { path = "../game_common", features = ["server"] }
 
 bevy = { version = "0.18", default-features = false, features = [
 	"bevy_log",

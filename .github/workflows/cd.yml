@@ -11,12 +11,11 @@ concurrency:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: khanhtimn/khanhtimn_dev
   # Reduce compile time.
   RUSTFLAGS: -Zshare-generics=y -Zthreads=0
 
 jobs:
-  build:
+  build-leptos:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -33,7 +32,7 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: release
+          shared-key: release-leptos
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Install cargo-binstall
@@ -45,14 +44,14 @@ jobs:
       - name: Install wasm-bindgen-cli
         run: cargo binstall wasm-bindgen-cli@0.2.106 -y
 
-      - name: Build
+      - name: Build Leptos
         run: cargo leptos build --release
 
-      - name: Upload binary artifact
+      - name: Upload Leptos binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: server-binary
-          path: target/release/khanhtimn_dev_leptos
+          name: leptos-binary
+          path: target/release/khanhtimn_dev
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
@@ -66,18 +65,48 @@ jobs:
           name: cargo-toml
           path: Cargo.toml
 
-  push:
+  build-game-server:
     runs-on: ubuntu-latest
-    needs: build
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
+      - name: Install mold linker
+        uses: rui314/setup-mold@v1
+
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: release-game-server
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Install build dependencies
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
+
+      - name: Build game server
+        run: cargo build --release --package game_server
+
+      - name: Upload game server binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-server-binary
+          path: target/release/game_server
+
+  push-leptos:
+    runs-on: ubuntu-latest
+    needs: build-leptos
     permissions:
       contents: read
       packages: write
 
     steps:
-      - name: Download binary artifact
+      - name: Download Leptos binary artifact
         uses: actions/download-artifact@v4
         with:
-          name: server-binary
+          name: leptos-binary
           path: ./app
 
       - name: Download site artifact
@@ -93,7 +122,7 @@ jobs:
           path: ./app
 
       - name: Make binary executable
-        run: chmod +x ./app/khanhtimn_dev_leptos
+        run: chmod +x ./app/khanhtimn_dev
 
       - name: Create Dockerfile
         run: |
@@ -105,14 +134,14 @@ jobs:
             && apt-get autoremove -y \
             && apt-get clean -y \
             && rm -rf /var/lib/apt/lists/*
-          COPY app/khanhtimn_dev_leptos /app/
+          COPY app/khanhtimn_dev /app/
           COPY app/site /app/site
           COPY app/Cargo.toml /app/
           ENV RUST_LOG="info"
           ENV LEPTOS_SITE_ADDR="0.0.0.0:8080"
           ENV LEPTOS_SITE_ROOT="site"
           EXPOSE 8080
-          CMD ["/app/khanhtimn_dev_leptos"]
+          CMD ["/app/khanhtimn_dev"]
           EOF
 
       - name: Set up Docker Buildx
@@ -128,7 +157,72 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/khanhtimn/khanhtimn_dev
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+  push-game-server:
+    runs-on: ubuntu-latest
+    needs: build-game-server
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Download game server binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: game-server-binary
+          path: ./app
+
+      - name: Make binary executable
+        run: chmod +x ./app/game_server
+
+      - name: Create Dockerfile
+        run: |
+          cat <<'EOF' > Dockerfile
+          FROM debian:bookworm-slim
+          WORKDIR /app
+          RUN apt-get update -y \
+            && apt-get install -y --no-install-recommends openssl ca-certificates \
+            && apt-get autoremove -y \
+            && apt-get clean -y \
+            && rm -rf /var/lib/apt/lists/*
+          COPY app/game_server /app/
+          ENV RUST_LOG="info"
+          # Default WebTransport port
+          EXPOSE 4433/udp
+          CMD ["/app/game_server"]
+          EOF
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: khanhtimn
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/khanhtimn/khanhtimn_dev_game_server
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}

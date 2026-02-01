@@ -6,7 +6,7 @@
 use bevy::prelude::*;
 use bevy_replicon_renet2::RepliconRenetPlugins;
 use clap::Parser;
-use khanhtimn_dev_common::{bevy_replicon::prelude::*, CommonGamePlugin};
+use game_common::{CommonGamePlugin, bevy_replicon::prelude::*};
 
 mod connection;
 mod physics;

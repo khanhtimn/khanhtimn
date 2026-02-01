@@ -4,7 +4,7 @@
 //! Uses bevy_enhanced_input with observer pattern like the platformer example.
 
 use bevy::prelude::*;
-use khanhtimn_dev_common::{
+use game_common::{
     Jump, Movement,
     bevy_enhanced_input::prelude::*,
     components::{Player, PlayerColor, PlayerPosition, PlayerState, Rgba},
@@ -64,14 +64,14 @@ fn spawn_local_player(mut commands: Commands) {
                 SmoothNudge::default(),
                 Scale::splat(MOVE_SPEED),
                 Bindings::spawn((
-                    Bidirectional::new(KeyCode::KeyA, KeyCode::KeyD),
-                    Bidirectional::new(KeyCode::ArrowLeft, KeyCode::ArrowRight),
+                    Bidirectional::new(KeyCode::KeyD, KeyCode::KeyA),
+                    Bidirectional::new(KeyCode::ArrowRight, KeyCode::ArrowLeft),
                     Axial::left_stick(),
                 )),
             ),
             (
                 Action::<Jump>::new(),
-                bindings![KeyCode::Space, GamepadButton::South],
+                bindings![KeyCode::Space, KeyCode::KeyW, KeyCode::ArrowUp, GamepadButton::South],
             )
         ]),
     ));

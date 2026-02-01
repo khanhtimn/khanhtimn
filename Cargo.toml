@@ -38,16 +38,16 @@ codegen-units = 4
 opt-level = 0
 
 [[workspace.metadata.leptos]]
-name = "khanhtimn_dev_leptos"
+name = "khanhtimn_dev"
 
 # The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
-output-name = "khanhtimn_dev_leptos"
+output-name = "khanhtimn_dev"
 
 # The package in the workspace that contains the server binary (must have `package.name`)
-bin-package = "khanhtimn_dev_leptos"
+bin-package = "khanhtimn_dev"
 
 # The package in the workspace that contains the frontend lib (must have `package.name`)
-lib-package = "khanhtimn_dev_leptos"
+lib-package = "khanhtimn_dev"
 
 # The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
 site-root = "target/site"

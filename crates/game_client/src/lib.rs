@@ -10,7 +10,7 @@ compile_error!("game_client only supports WASM targets. Use `--target wasm32-unk
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 use bevy_replicon_renet2::RepliconRenetPlugins;
-use khanhtimn_dev_common::{CommonGamePlugin, bevy_replicon::prelude::*};
+use game_common::{CommonGamePlugin, bevy_replicon::prelude::*};
 
 mod audio;
 mod connection;

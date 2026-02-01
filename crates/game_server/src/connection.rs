@@ -12,7 +12,7 @@ use bevy_replicon_renet2::{
     },
     renet2::{ConnectionConfig, RenetServer},
 };
-use khanhtimn_dev_common::{
+use game_common::{
     bevy_replicon::prelude::*,
     protocol::{MAX_CLIENTS, PROTOCOL_ID},
 };

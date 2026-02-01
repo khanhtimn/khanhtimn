@@ -11,7 +11,7 @@ use bevy_replicon_renet2::{
     netcode::{ClientAuthentication, NetcodeClientTransport},
     renet2::{ConnectionConfig, RenetClient},
 };
-use khanhtimn_dev_common::{bevy_replicon::prelude::*, protocol::PROTOCOL_ID};
+use game_common::{bevy_replicon::prelude::*, protocol::PROTOCOL_ID};
 
 use crate::{
     ServerConfig,

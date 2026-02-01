@@ -4,7 +4,7 @@
 //! client connection events.
 
 use bevy::prelude::*;
-use khanhtimn_dev_common::{
+use game_common::{
     bevy_replicon::prelude::*,
     components::{Player, PlayerColor, PlayerOwner, PlayerPosition, PlayerState, Rgba},
     protocol::{GROUND_LEVEL, PLAYER_SIZE},

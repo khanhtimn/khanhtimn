@@ -4,7 +4,7 @@
 //! Animation state is derived from the replicated PlayerState component.
 
 use bevy::prelude::*;
-use khanhtimn_dev_common::components::{Player, PlayerState};
+use game_common::components::{Player, PlayerState};
 use rand::prelude::*;
 use std::time::Duration;
 

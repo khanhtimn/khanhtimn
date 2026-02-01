@@ -4,7 +4,7 @@
 //! shared physics systems from game_common.
 
 use bevy::prelude::*;
-use khanhtimn_dev_common::{
+use game_common::{
     PlayerJumpInput, PlayerMovementInput,
     bevy_replicon::prelude::*,
     components::{PlayerOwner, PlayerState},

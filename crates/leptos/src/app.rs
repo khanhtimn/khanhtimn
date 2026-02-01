@@ -6,7 +6,7 @@ use leptos_router::{
 };
 
 #[cfg(feature = "hydrate")]
-use khanhtimn_dev_client::init_bevy_app;
+use game_client::init_bevy_app;
 #[cfg(feature = "hydrate")]
 use leptos_bevy_canvas::prelude::*;
 
@@ -36,7 +36,7 @@ pub fn App() -> impl IntoView {
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/khanhtimn_dev_leptos.css" />
+        <Stylesheet id="leptos" href="/pkg/khanhtimn_dev.css" />
 
         // sets the document title
         <Title text="Welcome to Leptos" />

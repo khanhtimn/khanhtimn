@@ -3204,6 +3204,50 @@ dependencies = [
 ]
 
 [[package]]
+name = "game_client"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_renet2",
+ "bevy_replicon_renet2",
+ "game_common",
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
+ "js-sys",
+ "rand",
+ "tracing",
+ "url",
+ "uuid",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "game_common"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_enhanced_input",
+ "bevy_replicon",
+ "serde",
+]
+
+[[package]]
+name = "game_server"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_renet2",
+ "bevy_replicon_renet2",
+ "clap",
+ "game_common",
+ "rand",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3954,40 +3998,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "khanhtimn_dev_client"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_renet2",
- "bevy_replicon_renet2",
- "getrandom 0.2.17",
- "getrandom 0.3.4",
- "js-sys",
- "khanhtimn_dev_common",
- "rand",
- "tracing",
- "url",
- "uuid",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "khanhtimn_dev_common"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_enhanced_input",
- "bevy_replicon",
- "serde",
-]
-
-[[package]]
-name = "khanhtimn_dev_leptos"
+name = "khanhtimn_dev"
 version = "0.1.0"
 dependencies = [
  "axum",
  "console_error_panic_hook",
- "khanhtimn_dev_client",
+ "game_client",
  "leptos",
  "leptos-bevy-canvas",
  "leptos-use 0.18.0",
@@ -3996,22 +4012,6 @@ dependencies = [
  "leptos_router",
  "tokio",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "khanhtimn_dev_server"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_renet2",
- "bevy_replicon_renet2",
- "clap",
- "khanhtimn_dev_common",
- "rand",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "url",
 ]
 
 [[package]]

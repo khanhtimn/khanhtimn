@@ -1,5 +1,5 @@
 [package]
-name = "khanhtimn_dev_leptos"
+name = "khanhtimn_dev"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,7 +7,7 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-khanhtimn_dev_client = { path = "../game_client", optional = true }
+game_client = { path = "../game_client", optional = true }
 leptos = { version = "0.8", features = ["nightly"] }
 leptos_router = { version = "0.8", features = ["nightly"] }
 axum = { version = "0.8", optional = true }
@@ -26,7 +26,7 @@ hydrate = [
     "leptos/hydrate",
     "dep:console_error_panic_hook",
     "dep:wasm-bindgen",
-    "dep:khanhtimn_dev_client",
+    "dep:game_client",
     "dep:leptos-bevy-canvas",
 ]
 ssr = [

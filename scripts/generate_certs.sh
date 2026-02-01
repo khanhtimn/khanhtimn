@@ -33,4 +33,4 @@ openssl x509 -in "$CERT_DIR/cert.pem" -outform der | openssl dgst -sha256
 
 echo ""
 echo "To run the server:"
-echo "  cargo run -p khanhtimn_dev_server -- --cert $CERT_DIR/cert.pem --key $CERT_DIR/key.pem"
+echo "  cargo run -p game_server -- --cert $CERT_DIR/cert.pem --key $CERT_DIR/key.pem"
