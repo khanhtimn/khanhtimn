@@ -4,7 +4,6 @@
 //! that accepts connections from browser clients.
 
 use bevy::prelude::*;
-use bevy_replicon::prelude::*;
 use bevy_replicon_renet2::{
     RenetChannelsExt,
     netcode::{
@@ -13,7 +12,10 @@ use bevy_replicon_renet2::{
     },
     renet2::{ConnectionConfig, RenetServer},
 };
-use khanhtimn_dev_common::protocol::{MAX_CLIENTS, PROTOCOL_ID};
+use khanhtimn_dev_common::{
+    bevy_replicon::prelude::*,
+    protocol::{MAX_CLIENTS, PROTOCOL_ID},
+};
 use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     time::SystemTime,

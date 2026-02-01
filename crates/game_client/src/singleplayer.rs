@@ -4,9 +4,9 @@
 //! Uses bevy_enhanced_input with observer pattern like the platformer example.
 
 use bevy::prelude::*;
-use bevy_enhanced_input::prelude::*;
 use khanhtimn_dev_common::{
     Jump, Movement,
+    bevy_enhanced_input::prelude::*,
     components::{Player, PlayerColor, PlayerPosition, PlayerState, Rgba},
     physics::SharedPhysicsPlugin,
     protocol::{GROUND_LEVEL, JUMP_VELOCITY, MOVE_SPEED, PLAYER_SIZE},

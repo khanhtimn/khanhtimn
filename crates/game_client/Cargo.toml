@@ -10,10 +10,6 @@ crate-type = ["cdylib", "rlib"]
 khanhtimn_dev_common = { path = "../game_common", features = ["client"] }
 
 bevy = { version = "0.18", default-features = false, features = ["2d"] }
-bevy_enhanced_input = { version = "0.22" }
-bevy_replicon = { version = "0.38", default-features = false, features = [
-	"client",
-] }
 bevy_replicon_renet2 = { version = "0.13", default-features = false, features = [
 	"client",
 	"wt_client_transport",

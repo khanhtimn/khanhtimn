@@ -3,11 +3,14 @@
 //! This crate provides the client-side game logic that runs in the browser.
 //! It connects to the game server via WebTransport and renders the game state.
 
+// This crate only compiles to WASM - WebTransport client requires browser APIs
+#[cfg(not(target_family = "wasm"))]
+compile_error!("game_client only supports WASM targets. Use `--target wasm32-unknown-unknown`.");
+
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
-use bevy_replicon::prelude::*;
 use bevy_replicon_renet2::RepliconRenetPlugins;
-use khanhtimn_dev_common::CommonGamePlugin;
+use khanhtimn_dev_common::{CommonGamePlugin, bevy_replicon::prelude::*};
 
 mod audio;
 mod connection;
@@ -56,8 +59,8 @@ pub struct PausableSystems;
 pub fn init_bevy_app() -> App {
     let dev_cert_hash = ServerCertHash {
         hash: [
-            52, 32, 180, 102, 1, 149, 62, 88, 60, 61, 158, 250, 2, 124, 132, 114, 71, 233, 118,
-            143, 192, 237, 36, 190, 156, 199, 112, 10, 129, 229, 158, 56,
+            1, 20, 167, 225, 215, 244, 100, 43, 62, 162, 69, 174, 239, 75, 18, 207, 216, 90, 135,
+            31, 175, 194, 84, 139, 62, 243, 61, 99, 24, 11, 69, 16,
         ],
     };
 

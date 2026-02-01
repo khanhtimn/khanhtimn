@@ -6,6 +6,10 @@
 use bevy::prelude::*;
 use bevy_replicon::prelude::*;
 
+// Re-export crates for downstream use
+pub use bevy_enhanced_input;
+pub use bevy_replicon;
+
 pub mod components;
 pub mod events;
 pub mod input;

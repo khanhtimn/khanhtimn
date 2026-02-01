@@ -6,13 +6,12 @@
 
 use bevy::prelude::*;
 use bevy_renet2::netcode::{WebServerDestination, WebTransportClient, WebTransportClientConfig};
-use bevy_replicon::prelude::*;
 use bevy_replicon_renet2::{
     RenetChannelsExt,
     netcode::{ClientAuthentication, NetcodeClientTransport},
     renet2::{ConnectionConfig, RenetClient},
 };
-use khanhtimn_dev_common::protocol::PROTOCOL_ID;
+use khanhtimn_dev_common::{bevy_replicon::prelude::*, protocol::PROTOCOL_ID};
 
 use crate::{
     ServerConfig,

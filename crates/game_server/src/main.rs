@@ -4,10 +4,9 @@
 //! WebTransport connections from browser clients.
 
 use bevy::prelude::*;
-use bevy_replicon::prelude::*;
 use bevy_replicon_renet2::RepliconRenetPlugins;
 use clap::Parser;
-use khanhtimn_dev_common::CommonGamePlugin;
+use khanhtimn_dev_common::{bevy_replicon::prelude::*, CommonGamePlugin};
 
 mod connection;
 mod physics;

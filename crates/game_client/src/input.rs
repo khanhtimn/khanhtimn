@@ -4,9 +4,10 @@
 //! separate events to the server for movement and jump.
 
 use bevy::prelude::*;
-use bevy_enhanced_input::prelude::*;
-use bevy_replicon::prelude::*;
-use khanhtimn_dev_common::{Jump, Movement, PlayerJumpInput, PlayerMovementInput};
+use khanhtimn_dev_common::{
+    Jump, Movement, PlayerJumpInput, PlayerMovementInput, bevy_enhanced_input::prelude::*,
+    bevy_replicon::prelude::*,
+};
 
 use crate::screens::{GameMode, GameScreen};
 

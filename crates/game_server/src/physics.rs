@@ -4,9 +4,9 @@
 //! shared physics systems from game_common.
 
 use bevy::prelude::*;
-use bevy_replicon::prelude::*;
 use khanhtimn_dev_common::{
     PlayerJumpInput, PlayerMovementInput,
+    bevy_replicon::prelude::*,
     components::{PlayerOwner, PlayerState},
     physics::SharedPhysicsPlugin,
     protocol::{JUMP_VELOCITY, MOVE_SPEED},
