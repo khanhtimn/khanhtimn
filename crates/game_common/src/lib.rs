@@ -4,24 +4,28 @@
 //! and shared constants used by both the WASM client and native server.
 
 use bevy::prelude::*;
-use bevy_replicon::prelude::*;
 
-// Re-export crates for downstream use
 pub use bevy_enhanced_input;
 pub use bevy_replicon;
+use bevy_replicon::prelude::*;
 
 pub mod components;
 pub mod events;
 pub mod input;
 pub mod physics;
 pub mod protocol;
+pub mod simulation;
+pub mod spawning;
 
 pub use input::{Jump, Movement, PlayerJumpInput, PlayerMovementInput};
 pub use physics::SharedPhysicsPlugin;
+pub use simulation::GameSimulationPlugin;
+pub use spawning::{LocalPlayer, SpawnLocalPlayer, SpawningPlugin};
 
 /// Plugin that registers all shared game logic.
 ///
 /// This should be added to both client and server apps.
+/// For game simulation, also add `GameSimulationPlugin`.
 pub struct CommonGamePlugin;
 
 impl Plugin for CommonGamePlugin {
@@ -32,7 +36,7 @@ impl Plugin for CommonGamePlugin {
             .replicate::<components::PlayerColor>()
             .replicate::<components::Player>();
 
-        // Register client->server events (separate for movement and jump)
+        // Register client->server events
         app.add_client_event::<PlayerMovementInput>(Channel::Ordered)
             .add_client_event::<PlayerJumpInput>(Channel::Ordered);
     }

@@ -1,4 +1,4 @@
-//! Network protocol constants and shared physics values.
+//! Constant values.
 //!
 //! These constants are used by both client and server to ensure
 //! consistent behavior across the network.
@@ -7,7 +7,7 @@ use bevy::prelude::Vec2;
 
 /// Protocol version for netcode authentication.
 /// Used to ensure client and server are compatible.
-pub const PROTOCOL_ID: u64 = 0x4B48414E48_544E; // "KHANH_TN" in hex
+pub const PROTOCOL_ID: u64 = 0x0;
 
 /// Default server port for WebTransport connections.
 pub const DEFAULT_PORT: u16 = 4433;
@@ -15,7 +15,7 @@ pub const DEFAULT_PORT: u16 = 4433;
 /// Maximum number of clients the server will accept.
 pub const MAX_CLIENTS: usize = 64;
 
-// Physics constants - shared for consistent behavior and potential client-side prediction.
+// Physics
 
 /// Y-coordinate of the ground plane.
 pub const GROUND_LEVEL: f32 = -200.0;

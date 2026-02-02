@@ -1,4 +1,4 @@
-use leptos::prelude::*;
+use leptos::{either::Either, prelude::*};
 use leptos_meta::{MetaTags, Stylesheet, Title, provide_meta_context};
 use leptos_router::{
     StaticSegment,
@@ -9,6 +9,13 @@ use leptos_router::{
 use game_client::init_bevy_app;
 #[cfg(feature = "hydrate")]
 use leptos_bevy_canvas::prelude::*;
+
+#[server(GetGameConfig)]
+pub async fn get_game_config() -> Result<String, ServerFnError> {
+    let url =
+        std::env::var("GAME_SERVER_URL").unwrap_or_else(|_| "https://localhost:4433/".to_string());
+    Ok(url)
+}
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
@@ -80,11 +87,7 @@ fn HomePage() -> impl IntoView {
 
 #[component]
 fn BevyCanvasWrapper() -> impl IntoView {
-    let is_mounted = RwSignal::new(false);
-
-    Effect::new(move |_| {
-        is_mounted.set(true);
-    });
+    let game_config = LocalResource::new(|| get_game_config());
 
     view! {
         <div
@@ -92,30 +95,54 @@ fn BevyCanvasWrapper() -> impl IntoView {
             style:width=format!("{}px", 1280)
             style:height=format!("{}px", 960)
         >
-            <Show
-                when=move || is_mounted.get()
-                fallback=move || {
-                    view! {
-                        <div class="flex items-center justify-center w-full h-full">
-                            <p class="text-gray-400">"Loading Bevy canvas..."</p>
-                        </div>
-                    }
+            <Suspense fallback=move || {
+                view! {
+                    <div class="flex items-center justify-center w-full h-full">
+                        <p class="text-gray-400">"Loading game..."</p>
+                    </div>
                 }
-            >
-                {move || {
-                    #[cfg(feature = "hydrate")]
-                    {
-                        view! {
-                            <BevyCanvas
-                                init=move || init_bevy_app()
-                                {..}
-                                width=format!("{}", 1280)
-                                height=format!("{}", 960)
-                            />
+            }>
+                {move || Suspend::new(async move {
+                    match game_config.await {
+                        Ok(server_url) => {
+                            #[cfg(feature = "hydrate")]
+                            {
+                                Either::Left(
+                                    view! {
+                                        <BevyCanvas
+                                            init=move || init_bevy_app(server_url.clone())
+                                            {..}
+                                            width=format!("{}", 1280)
+                                            height=format!("{}", 960)
+                                        />
+                                    },
+                                )
+                            }
+                            #[cfg(not(feature = "hydrate"))]
+                            {
+                                Either::Left(
+                                    view! {
+                                        <div class="flex items-center justify-center w-full h-full">
+                                            <p class="text-gray-400">{server_url}</p>
+                                        </div>
+                                    },
+                                )
+                            }
+                        }
+                        Err(e) => {
+                            Either::Right(
+                                view! {
+                                    <div class="flex items-center justify-center w-full h-full">
+                                        <p class="text-red-400">
+                                            "Failed to load config: " {e.to_string()}
+                                        </p>
+                                    </div>
+                                },
+                            )
                         }
                     }
-                }}
-            </Show>
+                })}
+            </Suspense>
         </div>
     }
 }

@@ -16,6 +16,7 @@ use game_common::{
     bevy_replicon::prelude::*,
     protocol::{MAX_CLIENTS, PROTOCOL_ID},
 };
+use rustls_pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
 use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     time::SystemTime,
@@ -23,12 +24,10 @@ use std::{
 
 use crate::Cli;
 
-/// Tokio runtime resource for async operations.
 #[derive(Resource)]
 pub struct TokioRuntime(pub tokio::runtime::Runtime);
 
 pub fn plugin(app: &mut App) {
-    // Create tokio runtime for WebTransport
     let runtime = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
     app.insert_resource(TokioRuntime(runtime));
     app.add_systems(Startup, setup_server);
@@ -49,39 +48,37 @@ fn setup_server(
         .duration_since(SystemTime::UNIX_EPOCH)
         .expect("System time before UNIX epoch");
 
-    // The bind address for the WebTransport server
     let bind_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), cli.port);
 
-    // The client's connection URL - this gets hashed to create the "server address" for netcode
-    // Using 127.0.0.1 explicitly to avoid IPv6 resolution issues with "localhost"
-    let client_url: url::Url = format!("https://127.0.0.1:{}/", cli.port)
+    let client_url: url::Url = format!("https://localhost:{}/", cli.port)
         .parse()
         .expect("Invalid URL");
     let server_dest = bevy_replicon_renet2::netcode::WebServerDestination::from(client_url.clone());
 
-    // Convert the WebServerDestination to a SocketAddr - this is the HASHED address
-    // that the client will use. The server MUST use this same address in socket_addresses!
-    let hashed_addr: SocketAddr = server_dest.clone().into();
-    println!("Server hashed address (for netcode): {:?}", hashed_addr);
+    let hashed_addr: SocketAddr = server_dest.into();
+    info!("Server hashed address (for netcode): {:?}", hashed_addr);
 
     let server_config = ServerSetupConfig {
         current_time,
         max_clients: MAX_CLIENTS,
         protocol_id: PROTOCOL_ID,
         authentication: ServerAuthentication::Unsecure,
-        // Use the HASHED address here - must match what client sends!
         socket_addresses: vec![vec![hashed_addr]],
     };
 
-    // Create a self-signed WebTransport server config
-    // This generates a temporary certificate valid for ~2 weeks
-    let proxies = vec![bind_addr.into(), server_dest];
+    // Load certificate and key from files
+    let cert = load_cert(&cli.cert);
+    let key = load_key(&cli.key);
 
-    let (wt_config, cert_hash) =
-        WebTransportServerConfig::new_selfsigned_with_proxies(bind_addr, proxies, MAX_CLIENTS)
-            .expect("Failed to create self-signed WebTransport config");
+    let wt_config = WebTransportServerConfig {
+        cert,
+        key,
+        listen: bind_addr,
+        max_clients: MAX_CLIENTS,
+    };
 
-    println!("Server certificate hash: {:?}", cert_hash);
+    info!("Loaded TLS certificate from: {}", cli.cert);
+    info!("Loaded TLS private key from: {}", cli.key);
 
     let wt_server = WebTransportServer::new(wt_config, runtime.0.handle().clone())
         .expect("Failed to create WebTransport server");
@@ -92,8 +89,29 @@ fn setup_server(
     commands.insert_resource(server);
     commands.insert_resource(transport);
 
-    println!(
-        "WebTransport server listening on https://127.0.0.1:{}",
+    info!(
+        "WebTransport server listening on https://localhost:{}",
         cli.port
     );
+}
+
+fn load_cert(path: &str) -> CertificateDer<'static> {
+    let certs: Vec<_> = CertificateDer::pem_file_iter(path)
+        .expect("Failed to read certificate file")
+        .collect::<Result<_, _>>()
+        .expect("Failed to parse certificates");
+
+    if certs.is_empty() {
+        panic!("No certificates found in '{}'", path);
+    }
+
+    certs.into_iter().next().unwrap().into_owned()
+}
+
+fn load_key(path: &str) -> PrivateKeyDer<'static> {
+    let key = PrivateKeyDer::from_pem_file(path).unwrap_or_else(|e| {
+        panic!("Failed to parse private key PEM '{}': {}", path, e);
+    });
+
+    key.clone_key()
 }

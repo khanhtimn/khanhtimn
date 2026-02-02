@@ -10,25 +10,17 @@ use game_common::{CommonGamePlugin, bevy_replicon::prelude::*};
 
 mod connection;
 mod physics;
-mod spawning;
 
-/// Command-line arguments for the game server.
 #[derive(Parser, Resource, Debug)]
 #[command(name = "game_server")]
-#[command(about = "Authoritative game server with WebTransport")]
 pub struct Cli {
-    /// Port to listen on for WebTransport connections.
     #[arg(short, long, default_value_t = 4433)]
     pub port: u16,
 
-    /// Path to TLS certificate file (PEM format).
-    /// Required for WebTransport (HTTPS).
-    #[arg(long, default_value = "certs/cert.pem")]
+    #[arg(long, default_value = "certs/localhost.pem")]
     pub cert: String,
 
-    /// Path to TLS private key file (PEM format).
-    /// Required for WebTransport (HTTPS).
-    #[arg(long, default_value = "certs/key.pem")]
+    #[arg(long, default_value = "certs/localhost-key.pem")]
     pub key: String,
 }
 
@@ -37,21 +29,18 @@ fn main() {
     println!("Starting game server on port {}", cli.port);
 
     App::new()
-        // Minimal plugins for headless server
         .add_plugins(MinimalPlugins)
-        // Add logging for debug output
         .add_plugins(bevy::log::LogPlugin {
             level: bevy::log::Level::DEBUG,
             filter: "wgpu=error,naga=warn".to_string(),
             ..default()
         })
-        // State management (required by bevy_replicon)
+        // State management
         .add_plugins(bevy::state::app::StatesPlugin)
         // Networking
         .add_plugins((RepliconPlugins, RepliconRenetPlugins, CommonGamePlugin))
         // Server configuration
         .insert_resource(cli)
-        // Server-specific plugins
-        .add_plugins((connection::plugin, physics::plugin, spawning::plugin))
+        .add_plugins((connection::plugin, physics::plugin))
         .run();
 }

@@ -21,20 +21,13 @@ mod screens;
 mod singleplayer;
 mod theme;
 
-use bevy_renet2::netcode::ServerCertHash;
-
-// Re-export for external configuration
-pub use bevy_renet2::netcode::ServerCertHash as CertHash;
 pub use screens::{GameMode, GameScreen};
 
 /// Configuration for connecting to the game server.
 #[derive(Resource, Clone)]
 pub struct ServerConfig {
-    /// The WebTransport URL to connect to (e.g., "https://localhost:4433").
+    /// The WebTransport URL to connect to.
     pub url: url::Url,
-    /// Server certificate hashes for self-signed certificates.
-    /// Leave empty to use standard PKI validation.
-    pub cert_hashes: Vec<ServerCertHash>,
 }
 
 /// High-level groupings of systems for the app in the `Update` schedule.
@@ -56,26 +49,14 @@ pub struct Pause(pub bool);
 #[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct PausableSystems;
 
-pub fn init_bevy_app() -> App {
-    let dev_cert_hash = ServerCertHash {
-        hash: [
-            1, 20, 167, 225, 215, 244, 100, 43, 62, 162, 69, 174, 239, 75, 18, 207, 216, 90, 135,
-            31, 175, 194, 84, 139, 62, 243, 61, 99, 24, 11, 69, 16,
-        ],
+/// Initialize the Bevy app with a server URL.
+///
+/// The URL should be provided from environment configuration via Leptos.
+pub fn init_bevy_app(server_url: String) -> App {
+    let config = ServerConfig {
+        url: url::Url::parse(&server_url).expect("Invalid server URL"),
     };
-
-    init_bevy_app_with_config(ServerConfig {
-        url: url::Url::parse("https://127.0.0.1:4433/").unwrap(),
-        cert_hashes: vec![dev_cert_hash],
-    })
-}
-
-/// Initialize the Bevy app with a custom server URL (no cert hashes - uses PKI).
-pub fn init_bevy_app_with_server(server_url: String) -> App {
-    init_bevy_app_with_config(ServerConfig {
-        url: url::Url::parse(&server_url).unwrap(),
-        cert_hashes: vec![],
-    })
+    init_bevy_app_with_config(config)
 }
 
 /// Initialize the Bevy app with full server configuration.

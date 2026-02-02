@@ -1,68 +1,54 @@
 //! Single player mode logic.
 //!
-//! Handles local player spawning and input for single player mode.
-//! Uses bevy_enhanced_input with observer pattern like the platformer example.
+//! Uses GameSimulationPlugin for game logic.
+//! Handles input via bevy_enhanced_input and fires events.
 
 use bevy::prelude::*;
 use game_common::{
-    Jump, Movement,
-    bevy_enhanced_input::prelude::*,
-    components::{Player, PlayerColor, PlayerPosition, PlayerState, Rgba},
-    physics::SharedPhysicsPlugin,
-    protocol::{GROUND_LEVEL, JUMP_VELOCITY, MOVE_SPEED, PLAYER_SIZE},
+    GameSimulationPlugin, Jump, LocalPlayer, Movement, PlayerJumpInput, PlayerMovementInput,
+    SpawnLocalPlayer, bevy_enhanced_input::prelude::*, protocol::MOVE_SPEED,
 };
-use rand::Rng;
 
 use crate::screens::{GameMode, GameScreen};
 
 pub fn plugin(app: &mut App) {
     app.add_plugins(EnhancedInputPlugin)
         .add_input_context::<LocalPlayer>()
+        // Add game simulation (physics, spawning, input handling)
+        .add_plugins(GameSimulationPlugin)
+        // Spawn player and setup input on entering Playing state
         .add_systems(
             OnEnter(GameScreen::Playing),
-            spawn_local_player.run_if(resource_equals(GameMode::SinglePlayer)),
+            spawn_player.run_if(resource_equals(GameMode::SinglePlayer)),
         )
-        // Input observers - apply movement/jump directly to PlayerState
-        .add_observer(apply_movement)
-        .add_observer(apply_jump);
-
-    // Add shared physics plugin for single player
-    app.add_plugins(SharedPhysicsPlugin);
+        .add_systems(
+            Update,
+            setup_input
+                .run_if(resource_equals(GameMode::SinglePlayer).and(in_state(GameScreen::Playing))),
+        )
+        // Convert bevy_enhanced_input actions to game events
+        .add_observer(on_movement_fire)
+        .add_observer(on_jump_fire);
 }
 
-/// Marker for the local player entity in single player mode.
-#[derive(Component)]
-pub struct LocalPlayer;
+fn spawn_player(mut commands: Commands) {
+    bevy::log::info!("[SinglePlayer] Requesting player spawn");
+    commands.trigger(SpawnLocalPlayer);
+}
 
-fn spawn_local_player(mut commands: Commands) {
-    bevy::log::info!("[SinglePlayer] Spawning local player");
-
-    // Generate random color
-    let mut rng = rand::rng();
-    let hue = rng.random_range(0.0..360.0);
-    let color = Rgba::from_hsl(hue, 0.8, 0.6);
-
-    // Spawn position: above ground
-    let spawn_y = GROUND_LEVEL + PLAYER_SIZE.y / 2.0 + 100.0;
-    let spawn_x = 0.0;
-
-    commands.spawn((
-        LocalPlayer,
-        Player,
-        PlayerPosition(Vec2::new(spawn_x, spawn_y)),
-        PlayerState {
-            velocity: Vec2::ZERO,
-            is_grounded: false,
-        },
-        PlayerColor(color),
-        // Input actions using bevy_enhanced_input
-        // Scale applies MOVE_SPEED directly to the movement value
-        actions!(LocalPlayer[
+fn setup_input(
+    mut commands: Commands,
+    player: Query<Entity, (With<LocalPlayer>, Without<Actions<LocalPlayer>>)>,
+) {
+    // Add input actions to player once spawned (if not already added)
+    if let Some(entity) = player.iter().next() {
+        bevy::log::info!("[SinglePlayer] Setting up input for player");
+        commands.entity(entity).insert(actions!(LocalPlayer[
             (
                 Action::<Movement>::new(),
                 DeadZone::default(),
                 SmoothNudge::default(),
-                Scale::splat(MOVE_SPEED),
+                Scale::splat(1.0),
                 Bindings::spawn((
                     Bidirectional::new(KeyCode::KeyD, KeyCode::KeyA),
                     Bidirectional::new(KeyCode::ArrowRight, KeyCode::ArrowLeft),
@@ -73,42 +59,40 @@ fn spawn_local_player(mut commands: Commands) {
                 Action::<Jump>::new(),
                 bindings![KeyCode::Space, KeyCode::KeyW, KeyCode::ArrowUp, GamepadButton::South],
             )
-        ]),
-    ));
-
-    bevy::log::info!(
-        "[SinglePlayer] Local player spawned at ({}, {})",
-        spawn_x,
-        spawn_y
-    );
+        ]));
+    }
 }
 
-/// Apply movement input directly to velocity.
-/// Scale already applies MOVE_SPEED, so we set velocity.x directly.
-fn apply_movement(
+/// Convert Movement action to PlayerMovementInput event.
+fn on_movement_fire(
     movement: On<Fire<Movement>>,
     game_mode: Res<GameMode>,
-    mut query: Query<&mut PlayerState>,
+    mut commands: Commands,
+    query: Query<Entity, With<LocalPlayer>>,
 ) {
     if *game_mode != GameMode::SinglePlayer {
         return;
     }
 
-    if let Ok(mut state) = query.get_mut(movement.context) {
-        state.velocity.x = movement.value;
+    if query.get(movement.context).is_ok() {
+        commands.trigger(PlayerMovementInput {
+            movement: movement.value * MOVE_SPEED,
+        });
     }
 }
 
-/// Apply jump input - set vertical velocity if grounded.
-fn apply_jump(jump: On<Fire<Jump>>, game_mode: Res<GameMode>, mut query: Query<&mut PlayerState>) {
+/// Convert Jump action to PlayerJumpInput event.
+fn on_jump_fire(
+    jump: On<Fire<Jump>>,
+    game_mode: Res<GameMode>,
+    mut commands: Commands,
+    query: Query<Entity, With<LocalPlayer>>,
+) {
     if *game_mode != GameMode::SinglePlayer {
         return;
     }
 
-    if let Ok(mut state) = query.get_mut(jump.context) {
-        if state.is_grounded {
-            state.velocity.y = JUMP_VELOCITY;
-            state.is_grounded = false;
-        }
+    if query.get(jump.context).is_ok() {
+        commands.trigger(PlayerJumpInput);
     }
 }
