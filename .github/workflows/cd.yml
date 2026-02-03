@@ -17,17 +17,17 @@ env:
 jobs:
   build-leptos:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
         with:
-          targets: wasm32-unknown-unknown
+          targets: wasm32-unknown-unknown,x86_64-unknown-linux-musl
 
-      - name: Install mold linker
-        uses: rui314/setup-mold@v1
+      - name: Install musl
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -46,6 +46,9 @@ jobs:
 
       - name: Build Leptos
         run: cargo leptos build --release
+        env:
+          CARGO_BUILD_TARGET: x86_64-unknown-linux-musl
+          LEPTOS_BIN_TARGET_TRIPLE: x86_64-unknown-linux-musl
 
       - name: Upload Leptos binary artifact
         uses: actions/upload-artifact@v4
@@ -66,16 +69,18 @@ jobs:
           path: Cargo.toml
 
   build-game-server:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: x86_64-unknown-linux-musl
 
-      - name: Install mold linker
-        uses: rui314/setup-mold@v1
+      - name: Install musl
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
 
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
@@ -83,11 +88,8 @@ jobs:
           shared-key: release-game-server
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Install build dependencies
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev
-
       - name: Build game server
-        run: cargo build --release --package game_server
+        run: cargo build --release --package game_server --target x86_64-unknown-linux-musl
 
       - name: Upload game server binary artifact
         uses: actions/upload-artifact@v4
@@ -127,13 +129,9 @@ jobs:
       - name: Create Dockerfile
         run: |
           cat <<'EOF' > Dockerfile
-          FROM debian:bookworm-slim
+          FROM alpine:3.19
           WORKDIR /app
-          RUN apt-get update -y \
-            && apt-get install -y --no-install-recommends openssl ca-certificates \
-            && apt-get autoremove -y \
-            && apt-get clean -y \
-            && rm -rf /var/lib/apt/lists/*
+          RUN apk add --no-cache ca-certificates
           COPY app/khanhtimn_dev /app/
           COPY app/site /app/site
           COPY app/Cargo.toml /app/
@@ -195,16 +193,11 @@ jobs:
       - name: Create Dockerfile
         run: |
           cat <<'EOF' > Dockerfile
-          FROM debian:bookworm-slim
+          FROM alpine:3.19
           WORKDIR /app
-          RUN apt-get update -y \
-            && apt-get install -y --no-install-recommends openssl ca-certificates \
-            && apt-get autoremove -y \
-            && apt-get clean -y \
-            && rm -rf /var/lib/apt/lists/*
+          RUN apk add --no-cache ca-certificates
           COPY app/game_server /app/
           ENV RUST_LOG="info"
-          # Default WebTransport port
           EXPOSE 4433/udp
           CMD ["/app/game_server"]
           EOF
