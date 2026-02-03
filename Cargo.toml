@@ -29,7 +29,7 @@ js-sys = "0.3.83"
 getrandom_0_2 = { version = "0.2", package = "getrandom" }
 getrandom_0_3 = { version = "0.3", package = "getrandom" }
 uuid = { version = "1.19", features = ["rng-getrandom"] }
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive", "env"] }
 tokio = { version = "1", features = ["rt-multi-thread"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 rustls-pki-types = "1.14.0"

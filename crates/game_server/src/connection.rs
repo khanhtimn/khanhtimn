@@ -17,10 +17,7 @@ use game_common::{
     protocol::{MAX_CLIENTS, PROTOCOL_ID},
 };
 use rustls_pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
-use std::{
-    net::{IpAddr, Ipv4Addr, SocketAddr},
-    time::SystemTime,
-};
+use std::{net::SocketAddr, time::SystemTime};
 
 use crate::Cli;
 
@@ -48,14 +45,19 @@ fn setup_server(
         .duration_since(SystemTime::UNIX_EPOCH)
         .expect("System time before UNIX epoch");
 
-    let bind_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), cli.port);
+    let bind_addr = SocketAddr::new(cli.host, cli.port);
 
-    let client_url: url::Url = format!("https://localhost:{}/", cli.port)
-        .parse()
-        .expect("Invalid URL");
+    // Use public URL if provided, otherwise construct from bind address
+    let public_url = cli
+        .public_url
+        .clone()
+        .unwrap_or_else(|| format!("https://{}:{}/", cli.host, cli.port));
+
+    let client_url: url::Url = public_url.parse().expect("Invalid public URL");
     let server_dest = bevy_replicon_renet2::netcode::WebServerDestination::from(client_url.clone());
 
     let hashed_addr: SocketAddr = server_dest.into();
+    info!("Public URL: {}", client_url);
     info!("Server hashed address (for netcode): {:?}", hashed_addr);
 
     let server_config = ServerSetupConfig {
@@ -89,10 +91,7 @@ fn setup_server(
     commands.insert_resource(server);
     commands.insert_resource(transport);
 
-    info!(
-        "WebTransport server listening on https://localhost:{}",
-        cli.port
-    );
+    info!("WebTransport server listening on {}", bind_addr);
 }
 
 fn load_cert(path: &str) -> CertificateDer<'static> {

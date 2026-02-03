@@ -7,25 +7,45 @@ use bevy::prelude::*;
 use bevy_replicon_renet2::RepliconRenetPlugins;
 use clap::Parser;
 use game_common::{CommonGamePlugin, GameSimulationPlugin, bevy_replicon::prelude::*};
+use std::net::IpAddr;
 
 mod connection;
 
 #[derive(Parser, Resource, Debug)]
 #[command(name = "game_server")]
 pub struct Cli {
-    #[arg(short, long, default_value_t = 4433)]
+    /// Host address to bind to
+    #[arg(long, default_value = "0.0.0.0", env = "GAME_SERVER_HOST")]
+    pub host: IpAddr,
+
+    /// Port to listen on
+    #[arg(short, long, default_value_t = 4433, env = "GAME_SERVER_PORT")]
     pub port: u16,
 
-    #[arg(long, default_value = "certs/localhost.pem")]
+    /// Public URL for clients to connect (used for netcode address hashing)
+    /// Shared with Leptos SSR to ensure client and server use the same URL
+    #[arg(long, env = "GAME_SERVER_URL")]
+    pub public_url: Option<String>,
+
+    /// Path to TLS certificate (PEM format)
+    #[arg(long, default_value = "certs/localhost.pem", env = "GAME_SERVER_CERT")]
     pub cert: String,
 
-    #[arg(long, default_value = "certs/localhost-key.pem")]
+    /// Path to TLS private key (PEM format)
+    #[arg(
+        long,
+        default_value = "certs/localhost-key.pem",
+        env = "GAME_SERVER_KEY"
+    )]
     pub key: String,
 }
 
 fn main() {
     let cli = Cli::parse();
-    println!("Starting game server on port {}", cli.port);
+    println!("Starting game server on {}:{}", cli.host, cli.port);
+    if let Some(ref url) = cli.public_url {
+        println!("Public URL: {}", url);
+    }
 
     App::new()
         .add_plugins(MinimalPlugins)

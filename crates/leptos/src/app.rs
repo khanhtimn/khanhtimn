@@ -87,7 +87,7 @@ fn HomePage() -> impl IntoView {
 
 #[component]
 fn BevyCanvasWrapper() -> impl IntoView {
-    let game_config = LocalResource::new(|| get_game_config());
+    let game_config = LocalResource::new(get_game_config);
 
     view! {
         <div

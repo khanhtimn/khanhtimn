@@ -6,11 +6,11 @@
 use bevy::prelude::*;
 
 use crate::{
+    PlayerJumpInput, PlayerMovementInput,
     components::PlayerState,
     physics::SharedPhysicsPlugin,
     protocol::{JUMP_VELOCITY, MOVE_SPEED},
     spawning::{LocalPlayer, SpawningPlugin},
-    PlayerJumpInput, PlayerMovementInput,
 };
 
 #[cfg(feature = "server")]
