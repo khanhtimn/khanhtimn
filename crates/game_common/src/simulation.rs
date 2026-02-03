@@ -57,11 +57,11 @@ fn apply_local_jump(
     _jump: On<PlayerJumpInput>,
     mut query: Query<&mut PlayerState, With<LocalPlayer>>,
 ) {
-    if let Some(mut state) = query.iter_mut().next() {
-        if state.is_grounded {
-            state.velocity.y = JUMP_VELOCITY;
-            state.is_grounded = false;
-        }
+    if let Some(mut state) = query.iter_mut().next()
+        && state.is_grounded
+    {
+        state.velocity.y = JUMP_VELOCITY;
+        state.is_grounded = false;
     }
 }
 

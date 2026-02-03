@@ -3,6 +3,7 @@
 //! Shared spawning logic used by both server (on client connect)
 //! and single-player client (on local spawn event).
 
+use bevy::log::*;
 use bevy::prelude::*;
 use rand::Rng;
 
