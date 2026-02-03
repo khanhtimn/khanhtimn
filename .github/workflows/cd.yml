@@ -47,14 +47,13 @@ jobs:
       - name: Build Leptos
         run: cargo leptos build --release
         env:
-          CARGO_BUILD_TARGET: x86_64-unknown-linux-musl
           LEPTOS_BIN_TARGET_TRIPLE: x86_64-unknown-linux-musl
 
       - name: Upload Leptos binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: leptos-binary
-          path: target/release/khanhtimn_dev
+          path: target/x86_64-unknown-linux-musl/release/khanhtimn_dev
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
@@ -95,7 +94,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: game-server-binary
-          path: target/release/game_server
+          path: target/x86_64-unknown-linux-musl/release/game_server
 
   push-leptos:
     runs-on: ubuntu-latest
