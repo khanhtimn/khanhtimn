@@ -7,6 +7,43 @@ members = [
     "crates/game_server",
 ]
 
+[workspace.dependencies]
+game_common = { path = "crates/game_common" }
+game_client = { path = "crates/game_client" }
+
+# Bevy ecosystem
+bevy = { version = "0.18", default-features = false }
+bevy_color = { version = "0.18", features = ["serialize"] }
+bevy_enhanced_input = "0.23"
+bevy_replicon = { version = "0.38", default-features = false }
+bevy_replicon_renet2 = { version = "0.13", default-features = false }
+bevy_renet2 = { version = "0.13", default-features = false }
+
+# Utilities
+rand = "0.9"
+url = "2.5"
+tracing = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+wasm-bindgen = "0.2.106"
+js-sys = "0.3.83"
+getrandom_0_2 = { version = "0.2", package = "getrandom" }
+getrandom_0_3 = { version = "0.3", package = "getrandom" }
+uuid = { version = "1.19", features = ["rng-getrandom"] }
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["rt-multi-thread"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rustls-pki-types = "1.14.0"
+
+# Leptos
+leptos = { version = "0.8", features = ["nightly"] }
+leptos_router = { version = "0.8", features = ["nightly"] }
+leptos_meta = "0.8"
+leptos_axum = "0.8"
+leptos-use = "0.18.0"
+leptos-bevy-canvas = { git = "https://github.com/Synphonyte/leptos-bevy-canvas", branch = "dependabot/cargo/bevy-0.18", features = ["bevy_state"] }
+axum = "0.8"
+console_error_panic_hook = "0.1"
+
 # Compile with Performance Optimizations:
 # <https://bevyengine.org/learn/quick-start/getting-started/setup/#compile-with-performance-optimizations>
 

@@ -1,86 +1,120 @@
-//! Client input handling for multiplayer mode.
+//! Input handling for the game client.
 //!
-//! Uses bevy_enhanced_input for action-based input and sends
-//! separate events to the server for movement and jump.
+//! Captures keyboard input and emits player input events.
+//! In single player mode, these events are handled locally.
+//! In multiplayer mode, they are sent to the server via replicon.
 
 use bevy::prelude::*;
 use game_common::{
-    Jump, Movement, PlayerJumpInput, PlayerMovementInput, bevy_enhanced_input::prelude::*,
+    PlayerJumpInput, PlayerMovementInput,
+    bevy_enhanced_input::prelude::*,
     bevy_replicon::prelude::*,
+    input::{Jump, Movement},
 };
 
 use crate::screens::{GameMode, GameScreen};
 
 pub fn plugin(app: &mut App) {
-    app.add_input_context::<MultiplayerPlayer>()
-        .add_systems(
-            OnEnter(GameScreen::Playing),
-            setup_multiplayer_input.run_if(resource_equals(GameMode::Multiplayer)),
-        )
-        .add_observer(send_movement_to_server)
-        .add_observer(send_jump_to_server);
+    app.add_plugins(EnhancedInputPlugin);
+
+    app.add_input_context::<PlayerInputContext>();
+
+    app.add_systems(OnEnter(GameScreen::Playing), setup_input);
+
+    app.add_observer(on_movement_action);
+    app.add_observer(on_movement_stop);
+    app.add_observer(on_jump_action);
 }
 
-/// Marker for multiplayer input entity.
+/// Input context component for player controls.
 #[derive(Component)]
-pub struct MultiplayerPlayer;
+struct PlayerInputContext;
 
-/// Spawn input capture entity for multiplayer mode.
-fn setup_multiplayer_input(mut commands: Commands) {
-    bevy::log::info!("[Input] Setting up multiplayer input");
+/// Entity that holds the input context.
+#[derive(Component)]
+pub struct InputController;
+
+/// Set up input context when entering the Playing screen.
+fn setup_input(mut commands: Commands, existing: Query<Entity, With<InputController>>) {
+    // Don't spawn if already exists
+    if !existing.is_empty() {
+        return;
+    }
 
     commands.spawn((
-        MultiplayerPlayer,
-        actions!(MultiplayerPlayer[
+        Name::new("Input Controller"),
+        InputController,
+        PlayerInputContext,
+        actions!(PlayerInputContext[
             (
                 Action::<Movement>::new(),
-                DeadZone::default(),
-                SmoothNudge::default(),
-                Scale::splat(1.0),
                 Bindings::spawn((
                     Bidirectional::new(KeyCode::KeyD, KeyCode::KeyA),
                     Bidirectional::new(KeyCode::ArrowRight, KeyCode::ArrowLeft),
-                    Axial::left_stick(),
                 )),
             ),
             (
                 Action::<Jump>::new(),
-                bindings![KeyCode::Space, KeyCode::KeyW, KeyCode::ArrowUp, GamepadButton::South],
-            )
+                bindings![
+                    KeyCode::Space,
+                    KeyCode::KeyW,
+                    KeyCode::ArrowUp,
+                ],
+            ),
         ]),
     ));
 }
 
-/// Send movement input to server.
-fn send_movement_to_server(
-    movement: On<Fire<Movement>>,
-    game_mode: Res<GameMode>,
+/// Handle movement action and emit PlayerMovementInput event.
+fn on_movement_action(
+    trigger: On<Fire<Movement>>,
     mut commands: Commands,
-    query: Query<Entity, With<MultiplayerPlayer>>,
+    game_mode: Res<GameMode>,
 ) {
-    if *game_mode != GameMode::Multiplayer {
-        return;
-    }
+    let movement = trigger.value;
 
-    if query.get(movement.context).is_ok() {
-        commands.client_trigger(PlayerMovementInput {
-            movement: movement.value,
-        });
+    let input = PlayerMovementInput { movement };
+
+    match *game_mode {
+        GameMode::SinglePlayer => {
+            commands.trigger(input);
+        }
+        GameMode::Multiplayer => {
+            commands.client_trigger(input);
+        }
     }
 }
 
-/// Send jump input to server.
-fn send_jump_to_server(
-    jump: On<Fire<Jump>>,
-    game_mode: Res<GameMode>,
+/// Handle movement action stopping (key released) - reset velocity to 0.
+fn on_movement_stop(
+    _trigger: On<Complete<Movement>>,
     mut commands: Commands,
-    query: Query<Entity, With<MultiplayerPlayer>>,
+    game_mode: Res<GameMode>,
 ) {
-    if *game_mode != GameMode::Multiplayer {
-        return;
-    }
+    let input = PlayerMovementInput { movement: 0.0 };
 
-    if query.get(jump.context).is_ok() {
-        commands.client_trigger(PlayerJumpInput);
+    match *game_mode {
+        GameMode::SinglePlayer => {
+            commands.trigger(input);
+        }
+        GameMode::Multiplayer => {
+            commands.client_trigger(input);
+        }
+    }
+}
+
+/// Handle jump action and emit PlayerJumpInput event.
+fn on_jump_action(_trigger: On<Start<Jump>>, mut commands: Commands, game_mode: Res<GameMode>) {
+    let input = PlayerJumpInput;
+
+    match *game_mode {
+        GameMode::SinglePlayer => {
+            // Local: trigger observer directly
+            commands.trigger(input);
+        }
+        GameMode::Multiplayer => {
+            // Network: send to server via replicon client event
+            commands.client_trigger(input);
+        }
     }
 }

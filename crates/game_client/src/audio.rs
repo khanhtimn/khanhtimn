@@ -1,5 +1,4 @@
 //! Audio utilities for music and sound effects.
-
 use bevy::prelude::*;
 
 pub fn plugin(app: &mut App) {

@@ -10,7 +10,9 @@ compile_error!("game_client only supports WASM targets. Use `--target wasm32-unk
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 use bevy_replicon_renet2::RepliconRenetPlugins;
-use game_common::{CommonGamePlugin, bevy_replicon::prelude::*};
+use game_common::{
+    CommonGamePlugin, GameSimulationPlugin, SpawnLocalPlayer, bevy_replicon::prelude::*,
+};
 
 mod audio;
 mod connection;
@@ -18,7 +20,6 @@ mod demo;
 mod input;
 mod menu;
 mod screens;
-mod singleplayer;
 mod theme;
 
 pub use screens::{GameMode, GameScreen};
@@ -59,14 +60,11 @@ pub fn init_bevy_app(server_url: String) -> App {
     init_bevy_app_with_config(config)
 }
 
-/// Initialize the Bevy app with full server configuration.
 pub fn init_bevy_app_with_config(config: ServerConfig) -> App {
     let mut app = App::new();
 
-    // Store server config
     app.insert_resource(config);
 
-    // Bevy plugins with WASM-friendly configuration
     app.add_plugins(
         DefaultPlugins
             .set(AssetPlugin {
@@ -84,23 +82,29 @@ pub fn init_bevy_app_with_config(config: ServerConfig) -> App {
             }),
     );
 
-    // Networking plugins
+    // Shared
     app.add_plugins((RepliconPlugins, RepliconRenetPlugins, CommonGamePlugin));
 
-    // Game plugins - order matters!
-    // singleplayer adds EnhancedInputPlugin, so it must come before input
+    // Single player: run physics locally
+    app.add_plugins(GameSimulationPlugin);
+
+    // Client-only
     app.add_plugins((
         audio::plugin,
         screens::plugin,
         menu::plugin,
-        singleplayer::plugin,
-        input::plugin,
         connection::plugin,
         theme::plugin,
         demo::plugin,
+        input::plugin,
     ));
 
-    // Configure system sets
+    // Spawn local player when entering single player mode
+    app.add_systems(
+        OnEnter(GameScreen::Playing),
+        spawn_local_player.run_if(resource_equals(GameMode::SinglePlayer)),
+    );
+
     app.configure_sets(
         Update,
         (
@@ -111,11 +115,9 @@ pub fn init_bevy_app_with_config(config: ServerConfig) -> App {
             .chain(),
     );
 
-    // Pause state
     app.init_state::<Pause>();
     app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
 
-    // Camera
     app.add_systems(Startup, spawn_camera);
 
     app
@@ -123,4 +125,10 @@ pub fn init_bevy_app_with_config(config: ServerConfig) -> App {
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((Name::new("Camera"), Camera2d));
+}
+
+/// Spawn the local player for single player mode.
+fn spawn_local_player(mut commands: Commands) {
+    info!("[Client] Spawning local player for single player mode");
+    commands.trigger(SpawnLocalPlayer);
 }

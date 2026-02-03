@@ -8,25 +8,15 @@ name = "game_server"
 path = "src/main.rs"
 
 [dependencies]
-game_common = { path = "../game_common", features = ["server"] }
+game_common = { workspace = true, features = ["server"] }
 
-bevy = { version = "0.18", default-features = false, features = [
-	"bevy_log",
-	"bevy_state",
-	"multi_threaded",
-] }
-bevy_replicon_renet2 = { version = "0.13", default-features = false, features = [
-	"server",
-	"wt_server_transport",
-] }
-bevy_renet2 = { version = "0.13", default-features = false, features = [
-	"wt_server_transport",
-] }
+bevy = { workspace = true, features = ["bevy_log", "bevy_state", "multi_threaded"] }
+bevy_replicon_renet2 = { workspace = true, features = ["server", "wt_server_transport"] }
+bevy_renet2 = { workspace = true, features = ["wt_server_transport"] }
 
-clap = { version = "4", features = ["derive"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-rand = "0.9"
-tokio = { version = "1", features = ["rt-multi-thread"] }
-url = "2.5.8"
-rustls-pki-types = "1.14.0"
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tokio = { workspace = true }
+url = { workspace = true }
+rustls-pki-types = { workspace = true }

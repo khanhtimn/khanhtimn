@@ -5,12 +5,13 @@
 
 use bevy::prelude::*;
 
+// Re-export for shared types/traits used across crates
+// (ClientTriggerExt, InputAction, etc.)
 pub use bevy_enhanced_input;
 pub use bevy_replicon;
 use bevy_replicon::prelude::*;
 
 pub mod components;
-pub mod events;
 pub mod input;
 pub mod physics;
 pub mod protocol;
@@ -30,13 +31,11 @@ pub struct CommonGamePlugin;
 
 impl Plugin for CommonGamePlugin {
     fn build(&self, app: &mut App) {
-        // Register replicated components
         app.replicate::<components::PlayerPosition>()
             .replicate::<components::PlayerState>()
             .replicate::<components::PlayerColor>()
             .replicate::<components::Player>();
 
-        // Register client->server events
         app.add_client_event::<PlayerMovementInput>(Channel::Ordered)
             .add_client_event::<PlayerJumpInput>(Channel::Ordered);
     }

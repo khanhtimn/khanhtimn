@@ -6,10 +6,9 @@
 use bevy::prelude::*;
 use bevy_replicon_renet2::RepliconRenetPlugins;
 use clap::Parser;
-use game_common::{CommonGamePlugin, bevy_replicon::prelude::*};
+use game_common::{CommonGamePlugin, GameSimulationPlugin, bevy_replicon::prelude::*};
 
 mod connection;
-mod physics;
 
 #[derive(Parser, Resource, Debug)]
 #[command(name = "game_server")]
@@ -35,12 +34,17 @@ fn main() {
             filter: "wgpu=error,naga=warn".to_string(),
             ..default()
         })
+        .insert_resource(cli)
         // State management
         .add_plugins(bevy::state::app::StatesPlugin)
         // Networking
-        .add_plugins((RepliconPlugins, RepliconRenetPlugins, CommonGamePlugin))
-        // Server configuration
-        .insert_resource(cli)
-        .add_plugins((connection::plugin, physics::plugin))
+        .add_plugins((
+            RepliconPlugins,
+            RepliconRenetPlugins,
+            CommonGamePlugin,
+            connection::plugin,
+        ))
+        // Simulation
+        .add_plugins(GameSimulationPlugin)
         .run();
 }

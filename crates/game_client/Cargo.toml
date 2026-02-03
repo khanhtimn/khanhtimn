@@ -7,31 +7,23 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-game_common = { path = "../game_common", features = ["client"] }
+game_common = { workspace = true, features = ["client"] }
 
-bevy = { version = "0.18", default-features = false, features = ["2d"] }
-bevy_replicon_renet2 = { version = "0.13", default-features = false, features = [
-	"client",
-	"wt_client_transport",
-] }
-bevy_renet2 = { version = "0.13", default-features = false, features = [
-	"wt_client_transport",
-] }
+bevy = { workspace = true, features = ["2d"] }
+bevy_replicon_renet2 = { workspace = true, features = ["client", "wt_client_transport"] }
+bevy_renet2 = { workspace = true, features = ["wt_client_transport"] }
 
-getrandom-0-2 = { version = "0.2", package = "getrandom", features = ["js"] }
-getrandom-0-3 = { version = "0.3", package = "getrandom", features = [
-	"wasm_js",
-] }
-rand = "0.9"
-uuid = { version = "1.19", features = ["rng-getrandom"] }
-tracing = { version = "0.1", features = [
-	"max_level_debug",
-	"release_max_level_warn",
-] }
-url = "2.5"
-wasm-bindgen = "0.2.106"
-js-sys = "0.3.83"
+rand = { workspace = true }
+uuid = { workspace = true }
+tracing = { workspace = true, features = ["max_level_debug", "release_max_level_warn"] }
+url = { workspace = true }
 
+# WASM-only dependencies
+[target.'cfg(target_family = "wasm")'.dependencies]
+getrandom_0_2 = { workspace = true, features = ["js"] }
+getrandom_0_3 = { workspace = true, features = ["wasm_js"] }
+wasm-bindgen = { workspace = true }
+js-sys = { workspace = true }
 
 [features]
 default = []
