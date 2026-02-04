@@ -13,7 +13,8 @@ use leptos_bevy_canvas::prelude::*;
 #[server(GetGameConfig)]
 pub async fn get_game_config() -> Result<String, ServerFnError> {
     let url =
-        std::env::var("GAME_SERVER_URL").unwrap_or_else(|_| "https://localhost:4433/".to_string());
+        // std::env::var("GAME_SERVER_URL").unwrap_or_else(|_| "https://localhost:4433/".to_string());
+		std::env::var("GAME_SERVER_URL").unwrap();
     Ok(url)
 }
 

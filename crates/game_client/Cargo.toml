@@ -10,12 +10,18 @@ crate-type = ["cdylib", "rlib"]
 game_common = { workspace = true, features = ["client"] }
 
 bevy = { workspace = true, features = ["2d"] }
-bevy_replicon_renet2 = { workspace = true, features = ["client", "wt_client_transport"] }
+bevy_replicon_renet2 = { workspace = true, features = [
+	"client",
+	"wt_client_transport",
+] }
 bevy_renet2 = { workspace = true, features = ["wt_client_transport"] }
 
 rand = { workspace = true }
 uuid = { workspace = true }
-tracing = { workspace = true, features = ["max_level_debug", "release_max_level_warn"] }
+tracing = { workspace = true, features = [
+	"max_level_debug",
+	"release_max_level_debug",
+] }
 url = { workspace = true }
 
 # WASM-only dependencies

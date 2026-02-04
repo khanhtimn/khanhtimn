@@ -7,6 +7,8 @@ async fn main() {
     use leptos::prelude::*;
     use leptos_axum::{LeptosRoutes, generate_route_list};
 
+    dotenvy::dotenv().ok();
+
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
     let leptos_options = conf.leptos_options;

@@ -10,12 +10,22 @@ path = "src/main.rs"
 [dependencies]
 game_common = { workspace = true, features = ["server"] }
 
-bevy = { workspace = true, features = ["bevy_log", "bevy_state", "multi_threaded"] }
-bevy_replicon_renet2 = { workspace = true, features = ["server", "wt_server_transport"] }
+bevy = { workspace = true, features = [
+	"bevy_log",
+	"bevy_state",
+	"multi_threaded",
+] }
+bevy_replicon_renet2 = { workspace = true, features = [
+	"server",
+	"wt_server_transport",
+] }
 bevy_renet2 = { workspace = true, features = ["wt_server_transport"] }
 
 clap = { workspace = true }
-tracing = { workspace = true }
+tracing = { workspace = true, features = [
+	"max_level_debug",
+	"release_max_level_debug",
+] }
 tracing-subscriber = { workspace = true }
 tokio = { workspace = true }
 url = { workspace = true }
