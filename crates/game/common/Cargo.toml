@@ -1,0 +1,11 @@
+[package]
+name = "game-common"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+bevy = { workspace = true }
+bevy_enhanced_input = { workspace = true, features = ["default"] }

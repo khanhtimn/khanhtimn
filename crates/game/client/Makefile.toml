@@ -1,0 +1,9 @@
+[tasks.build-wasm]
+command = "wasm-pack"
+args = [
+    "build",
+    "--target",
+    "web",
+    "--out-dir",
+    "${CARGO_MAKE_WORKSPACE_WORKING_DIRECTORY}/assets/game",
+]

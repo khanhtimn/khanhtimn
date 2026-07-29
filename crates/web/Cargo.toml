@@ -1,0 +1,16 @@
+[package]
+name = "personal-page"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+topcoat = { version = "0.5.0", features = ["tailwind", "default"] }
+
+[build-dependencies]
+topcoat = { version = "0.5.0", default-features = false, features = [
+    "tailwind",
+] }

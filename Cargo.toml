@@ -1,0 +1,62 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/web",
+    "crates/game/client",
+    "crates/game/server",
+    "crates/game/common",
+]
+default-members = ["crates/web"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+authors = ["KhanhTIMN <khanhlcbb@gmail.com>"]
+
+[workspace.dependencies]
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros"] }
+thiserror = "2"
+anyhow = "1"
+
+bevy = { version = "0.19", default-features = false }
+bevy_enhanced_input = { version = "0.26", default-features = false }
+
+# Compile with Performance Optimizations:
+# <https://bevyengine.org/learn/quick-start/getting-started/setup/#compile-with-performance-optimizations>
+
+# Enable a large amount of optimization in the dev profile for dependencies.
+[profile.dev.package."*"]
+opt-level = 3
+
+# Remove expensive debug assertions due to <https://github.com/bevyengine/bevy/issues/14291>
+[profile.dev.package.wgpu-types]
+debug-assertions = false
+
+# Enable more optimization in the release profile at the cost of compile time.
+[profile.release]
+# Compile the entire crate as one unit.
+# Slows compile times, marginal improvements.
+codegen-units = 1
+# Do a second optimization pass over the entire program, including dependencies.
+# Slows compile times, marginal improvements.
+lto = "fat"
+
+# Optimize for size in the wasm-release profile to reduce load times and bandwidth usage on web.
+[profile.wasm-release]
+# Default to release profile values.
+inherits = "release"
+# Optimize with size in mind (also try "z", sometimes it is better).
+# Slightly slows compile times, great improvements to file size and runtime performance.
+opt-level = "s"
+# Strip all debugging information from the binary to slightly reduce file size.
+strip = "debuginfo"
+
+# Optimize for build time in CI.
+[profile.ci]
+inherits = "dev"
+opt-level = 0
+debug = "line-tables-only"
+codegen-units = 4
+
+[profile.ci.package."*"]
+opt-level = 0
