@@ -28,15 +28,20 @@ async fn home() -> Result {
             </head>
             <body>
                 // Sound fix
-                <link rel="inline" href=(asset!("../../../assets/game/sound.js"))/>
+                <link rel="inline" href=(asset!("../../../assets/game/sound.js")) />
                 // The bevy game
                 <canvas id="bevy_canvas"></canvas>
                 // Load bevy wasm module
                 <script
                     type="module"
                     id="bevy_game"
-                    data-game=(asset!("../../../assets/game/game_client.js", rename: "game"))
-                    data-wasm=(asset!("../../../assets/game/game_client_bg.wasm", rename: "game_client_bg"))
+                    data-game=(asset!(
+                        "../../../assets/game/game_client.js", rename : "game"
+                    ))
+                    data-wasm=(asset!(
+                        "../../../assets/game/game_client_bg.wasm", rename :
+                        "game_client_bg"
+                    ))
                 >
                     "const s = document.getElementById('bevy_game');"
                     "import(s.dataset.game).then(function(m) {"
@@ -51,12 +56,5 @@ async fn home() -> Result {
                 </script>
             </body>
         </html>
-    }
-}
-
-#[component]
-async fn hello(name: &str) -> Result {
-    view! {
-        <h1>"Hello, " (name) "!"</h1>
     }
 }

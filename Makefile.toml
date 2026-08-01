@@ -1,8 +1,0 @@
-[config]
-unstable_features = ["CTRL_C_HANDLING"]
-
-[tasks.serve]
-workspace = false
-dependencies = [{ name = "build-wasm", path = "crates/game/client" }]
-command = "topcoat"
-args = ["dev", "-p", "personal-page"]

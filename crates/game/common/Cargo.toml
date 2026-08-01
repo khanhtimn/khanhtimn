@@ -7,5 +7,5 @@ edition.workspace = true
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 
-bevy = { workspace = true }
+bevy = { workspace = true, features = ["2d_api"] }
 bevy_enhanced_input = { workspace = true, features = ["default"] }
