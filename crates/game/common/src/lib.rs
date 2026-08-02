@@ -1,4 +1,7 @@
 pub mod gameplay;
+pub mod prelude;
+
+pub use prelude::*;
 
 use bevy::app::App;
 #[cfg(debug_assertions)]
@@ -16,11 +19,11 @@ enum GameState {
     // Here the menu is drawn and waiting for player interaction
     Menu,
 }
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-
         #[cfg(debug_assertions)]
         {
             app.add_plugins((
@@ -31,6 +34,5 @@ impl Plugin for GamePlugin {
 
         app.init_state::<GameState>()
             .add_plugins(gameplay::GameplayPlugin);
-
     }
 }

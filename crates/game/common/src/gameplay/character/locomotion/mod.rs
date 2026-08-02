@@ -1,14 +1,27 @@
-use bevy::ecs::bundle::Bundle;
+use bevy::app::{App, FixedUpdate, Plugin};
+use bevy::ecs::component::Component;
 
 pub mod components;
+mod systems;
 
-use components::*;
+pub use components::{Facing, Locks, MoveState, MoveStats, PushVelocity, Velocity};
 
-#[derive(Bundle, Default)]
-pub struct Locomotion {
-    pub stats: MoveStats,
-    pub state: MoveState,
-    pub velocity: Velocity,
-    pub locks: Locks,
-    pub facing: Facing,
+#[derive(Component, Debug, Default)]
+#[require(MoveStats, MoveState, Velocity, PushVelocity, Locks, Facing)]
+pub struct CharacterLocomotion;
+
+pub struct LocomotionPlugin;
+
+impl Plugin for LocomotionPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            FixedUpdate,
+            (
+                systems::apply_gravity,
+                systems::apply_velocity,
+                systems::check_ground,
+                systems::update_facing,
+            ),
+        );
+    }
 }

@@ -53,9 +53,10 @@ fn main() -> Result<()> {
             let (tx, rx) = channel();
             let mut watcher = notify::recommended_watcher(move |res: Result<Event, _>| {
                 if let Ok(event) = res
-                    && (event.kind.is_modify() || event.kind.is_create()) {
-                        let _ = tx.send(());
-                    }
+                    && (event.kind.is_modify() || event.kind.is_create())
+                {
+                    let _ = tx.send(());
+                }
             })?;
 
             for watch_path in ["crates/game/client", "crates/game/common"] {

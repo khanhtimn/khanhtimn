@@ -2,6 +2,7 @@ use bevy::app::{App, Plugin};
 
 use crate::gameplay::character::CharacterPlugin;
 
+pub mod arena;
 pub mod character;
 
 pub struct GameplayPlugin;
