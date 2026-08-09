@@ -5,5 +5,8 @@
 		"topcoat",
 		"fmt",
 		"--stdin",
-	]
+	],
+	"rust-analyzer.cargo.extraEnv": {
+		"RUSTFLAGS": "-Zshare-generics=y -Zthreads=0"
+	}
 }

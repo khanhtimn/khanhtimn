@@ -6,6 +6,8 @@ edition.workspace = true
 [dependencies]
 thiserror = { workspace = true }
 anyhow = { workspace = true }
+log = { workspace = true }
+tracing = { workspace = true }
 
 bevy = { workspace = true, features = ["2d_api"] }
 bevy_enhanced_input = { workspace = true, features = ["default"] }

@@ -1,0 +1,18 @@
+({
+    "naruto_idle": Files(
+        paths: [
+            "characters/naruto/textures/idle/1.png",
+            "characters/naruto/textures/idle/2.png",
+            "characters/naruto/textures/idle/3.png",
+            "characters/naruto/textures/idle/4.png",
+            "characters/naruto/textures/idle/5.png",
+            "characters/naruto/textures/idle/6.png",
+            "characters/naruto/textures/idle/7.png",
+            "characters/naruto/textures/idle/8.png",
+            "characters/naruto/textures/idle/9.png",
+            "characters/naruto/textures/idle/10.png",
+            "characters/naruto/textures/idle/11.png",
+            "characters/naruto/textures/idle/12.png",
+        ],
+    ),
+})

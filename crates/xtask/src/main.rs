@@ -1,6 +1,7 @@
 use anyhow::Result;
 use notify::{Event, RecursiveMode, Watcher};
 use std::{
+    fs::OpenOptions,
     path::Path,
     process::Command,
     sync::mpsc::channel,
@@ -8,7 +9,7 @@ use std::{
 };
 
 fn build_wasm() -> Result<()> {
-    println!("🚀 Building WASM game client...");
+    println!("wasm-pack building...");
     let status = Command::new("wasm-pack")
         .current_dir("crates/game/client")
         .args([
@@ -16,22 +17,22 @@ fn build_wasm() -> Result<()> {
             "--target",
             "web",
             "--out-dir",
-            "../../../assets/game",
+            "../../../assets/game/pkg",
             "--no-opt",
         ])
         .status()?;
 
     if !status.success() {
-        anyhow::bail!("wasm-pack build failed");
+        anyhow::bail!("wasm-pack build failed!");
     }
-    println!("✅ WASM game client updated successfully.");
+    println!("wasm-pack finished building bevy client");
     Ok(())
 }
 
 fn trigger_topcoat_reload() -> Result<()> {
     let main_rs = Path::new("crates/web/src/main.rs");
     if main_rs.exists() {
-        let file = std::fs::File::open(main_rs)?;
+        let file = OpenOptions::new().write(true).open(main_rs)?;
         file.set_modified(std::time::SystemTime::now())?;
     }
     Ok(())
@@ -45,7 +46,7 @@ fn main() -> Result<()> {
         "dev" => {
             build_wasm()?;
 
-            println!("⚡ Starting topcoat dev server...");
+            println!("Starting topcoat dev server...");
             let mut topcoat_child = Command::new("topcoat")
                 .args(["dev", "-p", "personal-page"])
                 .spawn()?;
@@ -53,36 +54,64 @@ fn main() -> Result<()> {
             let (tx, rx) = channel();
             let mut watcher = notify::recommended_watcher(move |res: Result<Event, _>| {
                 if let Ok(event) = res
-                    && (event.kind.is_modify() || event.kind.is_create())
+                    && !event.kind.is_access()
                 {
                     let _ = tx.send(());
                 }
             })?;
 
-            for watch_path in ["crates/game/client", "crates/game/common"] {
+            for watch_path in [
+                "crates/game/client/src",
+                "crates/game/client/Cargo.toml",
+                "crates/game/common/src",
+                "crates/game/common/Cargo.toml",
+            ] {
                 if Path::new(watch_path).exists() {
                     watcher.watch(Path::new(watch_path), RecursiveMode::Recursive)?;
                 }
             }
 
-            println!("👀 Watching crates/game/client and crates/game/common for changes...");
+            println!("Watching game source directories for changes...");
 
-            let mut last_build = Instant::now();
-            let debounce_duration = Duration::from_millis(500);
+            let debounce_duration = Duration::from_millis(300);
 
-            while let Ok(()) = rx.recv() {
-                // Drain any pending duplicate events
-                while rx.try_recv().is_ok() {}
+            loop {
+                if rx.recv().is_err() {
+                    break;
+                }
 
-                if last_build.elapsed() >= debounce_duration {
-                    last_build = Instant::now();
-                    println!("🔄 Game source modified. Rebuilding WASM...");
-                    if let Err(err) = build_wasm() {
-                        eprintln!("❌ WASM rebuild error: {err}");
-                    } else if let Err(err) = trigger_topcoat_reload() {
-                        eprintln!("❌ Failed to trigger topcoat reload: {err}");
+                // Trailing-edge quiet-period debouncing: wait for 300ms of quiet after latest edit
+                let mut last_event_time = Instant::now();
+                loop {
+                    match rx.recv_timeout(debounce_duration) {
+                        Ok(()) => {
+                            last_event_time = Instant::now();
+                        }
+                        Err(_) => {
+                            if last_event_time.elapsed() >= debounce_duration {
+                                break;
+                            }
+                        }
                     }
                 }
+
+                while rx.try_recv().is_ok() {}
+
+                println!("Game source modified. Rebuilding WASM...");
+                match build_wasm() {
+                    Ok(()) => {
+                        println!("Triggering Topcoat asset re-bundle...");
+                        if let Err(err) = trigger_topcoat_reload() {
+                            eprintln!("Failed to trigger topcoat reload: {err}");
+                        }
+                    }
+                    Err(err) => {
+                        eprintln!("WASM rebuild error: {err}");
+                    }
+                }
+
+                // Drain any events that occurred while compilation was running
+                while rx.try_recv().is_ok() {}
             }
 
             let _ = topcoat_child.wait();
