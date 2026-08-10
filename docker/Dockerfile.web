@@ -24,6 +24,8 @@ RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../ass
 
 ENV RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
 
+RUN mkdir -p /app/target/assets
+
 RUN cargo build --release -p personal-page
 
 FROM debian:bookworm-slim AS runtime
