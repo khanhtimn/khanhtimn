@@ -98,13 +98,12 @@ async fn serve_game_assets(cx: &Cx) -> Result<Response> {
 }
 
 #[tokio::main]
-async fn main() {
-    let router = Router::builder()
-        .discover()
-        .assets(AssetBundle::load_dir("target/assets").unwrap())
-        .build();
+async fn main() -> Result<()> {
+    let assets = AssetBundle::load_dir("target/assets")?;
+    let router = Router::builder().discover().assets(assets).build();
 
-    topcoat::start(router).await.unwrap();
+    topcoat::start(router).await?;
+    Ok(())
 }
 
 #[page("/")]

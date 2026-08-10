@@ -1,4 +1,4 @@
-use bevy::{asset::AssetMetaCheck, log, prelude::*};
+use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy_asset_loader::{
     asset_collection::AssetCollection,
     loading_state::{LoadingState, LoadingStateAppExt, config::ConfigureLoadingState},
@@ -99,34 +99,72 @@ fn spawn_character(mut commands: Commands, char_assets: Res<CharacterAssets>) {
         Character,
         CharacterInput,
         CharacterAnimationState::default(),
-        actions!(
-            CharacterInput[
-                (
-                    Action::<actions::Move>::new(),
-                    DeadZone::default(),
-                    Bindings::spawn((
-                        Bidirectional::new(KeyCode::KeyD, KeyCode::KeyA),
-                        Bidirectional::new(KeyCode::ArrowRight, KeyCode::ArrowLeft),
-                    )),
-                ),
-                (
-                    Action::<actions::Jump>::new(),
-                    bindings![KeyCode::Space, KeyCode::KeyK, KeyCode::Numpad2]
-                ),
-                (
+        Actions::<CharacterInput>::spawn(SpawnWith(|context: &mut ActionSpawner<_>| {
+            let crouch = context
+                .spawn((
                     Action::<actions::Crouch>::new(),
-                    bindings![KeyCode::KeyS, KeyCode::ArrowDown]
-                ),
-                (
-                    Action::<actions::UpModifier>::new(),
-                    bindings![KeyCode::KeyW, KeyCode::ArrowUp]
-                ),
-                (
-                    Action::<actions::Dash>::new(),
-                    bindings![KeyCode::KeyL, KeyCode::Numpad3]
-                ),
-            ]
-        ),
+                    bindings![KeyCode::KeyS, KeyCode::ArrowDown, KeyCode::Numpad1],
+                ))
+                .id();
+
+            context.spawn((
+                Action::<actions::PlatformDrop>::new(),
+                Chord::single(crouch),
+                bindings![KeyCode::Space, KeyCode::KeyK, KeyCode::Numpad2],
+            ));
+
+            context.spawn((
+                Action::<actions::Jump>::new(),
+                bindings![KeyCode::Space, KeyCode::KeyK, KeyCode::Numpad2],
+            ));
+
+            context.spawn((
+                Action::<actions::Move>::new(),
+                DeadZone::default(),
+                Bindings::spawn((
+                    Bidirectional::new(KeyCode::KeyD, KeyCode::KeyA),
+                    Bidirectional::new(KeyCode::ArrowRight, KeyCode::ArrowLeft),
+                )),
+            ));
+
+            context.spawn((
+                Action::<actions::UpModifier>::new(),
+                bindings![KeyCode::KeyW, KeyCode::ArrowUp],
+            ));
+
+            context.spawn((
+                Action::<actions::Dash>::new(),
+                bindings![KeyCode::KeyL, KeyCode::Numpad3],
+            ));
+        })),
+        // actions!(
+        //     CharacterInput[
+        //         (
+        //             Action::<actions::Move>::new(),
+        //             DeadZone::default(),
+        //             Bindings::spawn((
+        //                 Bidirectional::new(KeyCode::KeyD, KeyCode::KeyA),
+        //                 Bidirectional::new(KeyCode::ArrowRight, KeyCode::ArrowLeft),
+        //             )),
+        //         ),
+        //         (
+        //             Action::<actions::Jump>::new(),
+        //             bindings![KeyCode::Space, KeyCode::KeyK, KeyCode::Numpad2]
+        //         ),
+        //         (
+        //             Action::<actions::Crouch>::new(),
+        //             bindings![KeyCode::KeyS, KeyCode::ArrowDown, KeyCode::Numpad1]
+        //         ),
+        //         (
+        //             Action::<actions::UpModifier>::new(),
+        //             bindings![KeyCode::KeyW, KeyCode::ArrowUp]
+        //         ),
+        //         (
+        //             Action::<actions::Dash>::new(),
+        //             bindings![KeyCode::KeyL, KeyCode::Numpad3]
+        //         ),
+        //     ]
+        // ),
     ));
 }
 

@@ -31,9 +31,14 @@ fn build_wasm() -> Result<()> {
 
 fn trigger_topcoat_reload() -> Result<()> {
     let main_rs = Path::new("crates/web/src/main.rs");
-    if main_rs.exists() {
-        let file = OpenOptions::new().write(true).open(main_rs)?;
-        file.set_modified(std::time::SystemTime::now())?;
+    match OpenOptions::new().write(true).open(main_rs) {
+        Ok(file) => {
+            file.set_modified(std::time::SystemTime::now())?;
+        }
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+            // File does not exist, ignore
+        }
+        Err(err) => return Err(err.into()),
     }
     Ok(())
 }
@@ -80,7 +85,6 @@ fn main() -> Result<()> {
                     break;
                 }
 
-                // Trailing-edge quiet-period debouncing: wait for 300ms of quiet after latest edit
                 let mut last_event_time = Instant::now();
                 loop {
                     match rx.recv_timeout(debounce_duration) {

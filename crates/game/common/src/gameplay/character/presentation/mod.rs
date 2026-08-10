@@ -5,10 +5,18 @@ pub mod loader;
 pub mod manifest;
 pub mod systems;
 
-pub use components::*;
-pub use loader::*;
-pub use manifest::*;
-pub use systems::*;
+pub use components::{
+    AnimationPlaybackFlags, AnimationVideoSettings, CharacterAnimationState,
+    CharacterManifestHandle, InterpolationMode,
+};
+pub use loader::CharacterManifestLoader;
+pub use manifest::{
+    AnimationFrame, CharacterAnimationClip, CharacterManifestAsset, LoadedSpriteSheet, LoopMode,
+    SpriteSheetDef,
+};
+pub use systems::{
+    advance_character_animations, update_character_animation_state, update_character_sprites,
+};
 
 pub struct PresentationPlugin;
 

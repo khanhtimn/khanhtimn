@@ -62,6 +62,7 @@ pub struct CharacterManifestHandle(pub Handle<CharacterManifestAsset>);
 
 /// User video presentation settings resource for sub-frame animation smoothing.
 #[derive(Resource, Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AnimationVideoSettings {
     pub interpolation_mode: InterpolationMode,
     pub default_sprite_scale: f32,

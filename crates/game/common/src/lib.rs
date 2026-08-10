@@ -10,8 +10,13 @@ pub mod prelude {
     pub use crate::gameplay::{
         GameplayPlugin,
         character::{
-            Character, CharacterInput, CharacterLocomotion, CharacterPlugin, actions,
-            locomotion::CharacterLandedMessage,
+            Character, CharacterInput, CharacterLocomotion, CharacterPlugin,
+            actions::{self},
+            locomotion::{
+                CharacterBlockedMessage, CharacterDashedMessage, CharacterGuardStateChangedMessage,
+                CharacterJumpedMessage, CharacterLandedMessage, CharacterPlatformDroppedMessage,
+                CharacterTurnedMessage,
+            },
             presentation::{
                 AnimationFrame, AnimationPlaybackFlags, AnimationVideoSettings,
                 CharacterAnimationClip, CharacterAnimationState, CharacterManifestAsset,

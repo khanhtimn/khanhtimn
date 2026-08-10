@@ -1,5 +1,5 @@
 use bevy::{
-    asset::{io::Reader, AssetLoader, LoadContext},
+    asset::{AssetLoader, LoadContext, io::Reader},
     platform::collections::HashMap,
     prelude::*,
 };
@@ -8,6 +8,13 @@ use super::manifest::{CharacterManifestAsset, LoadedSpriteSheet};
 
 #[derive(Default, TypePath)]
 pub struct CharacterManifestLoader;
+
+// TODO: Major Asset Loading System Enhancements
+// 1. Multi-Texture Atlas Packing: Support dynamically generated composite texture atlases (packing multiple individual clip sheets into single GPU texture maps to minimize render draw calls and state switches).
+// 2. Asynchronous Texture Streaming & Deferred Loading: Support loading lightweight low-res proxies or core clips (idle/walk) first, lazily streaming heavy move/special-effect sprite sheets on demand.
+// 3. Binary Serialization & Fast Parsing: Support binary RON / bincode or flatbuffers loaders for fast production startup times and reduced parsing overhead on WASM / mobile.
+// 4. Hot-Reloading Dependency Re-indexing: Automatically detect changes to underlying `.png` sprite sheet files and trigger partial atlas re-generation without restarting the scene.
+// 5. Custom Asset Loader Settings: Expose `type Settings = CharacterLoaderSettings` to configure sampler filtering (Nearest vs Linear) and mipmapping options per character manifest.
 
 impl AssetLoader for CharacterManifestLoader {
     type Asset = CharacterManifestAsset;
@@ -40,6 +47,7 @@ impl AssetLoader for CharacterManifestLoader {
             let label = format!("atlas_layout_{}", sheet_key);
             let layout_handle = load_context.add_labeled_asset(label, layout);
 
+            // Dynamically load referenced sprite sheet image dependency
             let image_handle: Handle<Image> = load_context.load(&sheet_def.image);
 
             loaded_sheets.insert(

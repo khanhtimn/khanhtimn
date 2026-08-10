@@ -19,3 +19,7 @@ pub struct UpModifier;
 #[derive(InputAction)]
 #[action_output(bool)]
 pub struct Dash;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct PlatformDrop;
