@@ -1,0 +1,44 @@
+FROM rust:1-slim-bookworm AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    clang \
+    lld \
+    curl \
+    ca-certificates \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN rustup toolchain install nightly && \
+    rustup default nightly && \
+    rustup target add wasm32-unknown-unknown
+
+RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+WORKDIR /app
+COPY . .
+
+ENV RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
+
+RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
+
+RUN cargo build --release -p personal-page
+
+FROM debian:bookworm-slim AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder /app/target/release/personal-page /app/personal-page
+COPY --from=builder /app/target/assets /app/target/assets
+COPY --from=builder /app/assets /app/assets
+
+ENV RUST_LOG="info"
+ENV PORT="8080"
+
+EXPOSE 8080
+
+CMD ["/app/personal-page"]
