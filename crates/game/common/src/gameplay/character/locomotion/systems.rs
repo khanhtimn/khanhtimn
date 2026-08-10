@@ -1,11 +1,6 @@
-use bevy::{
-    ecs::system::{Query, Res},
-    math::Vec3,
-    time::Time,
-    transform::components::Transform,
-};
+use bevy::prelude::*;
 
-use super::components::{AirState, Facing, MoveState, MoveStats, Velocity};
+use super::components::{AirState, CharacterLandedMessage, Facing, MoveState, MoveStats, Velocity};
 
 pub fn apply_gravity(
     time: Res<Time>,
@@ -34,8 +29,11 @@ pub fn apply_velocity(time: Res<Time>, mut query: Query<(&mut Transform, &Veloci
     }
 }
 
-pub fn check_ground(mut query: Query<(&mut Transform, &mut Velocity, &mut MoveState)>) {
-    for (mut transform, mut velocity, mut state) in &mut query {
+pub fn check_ground(
+    mut landed_writer: MessageWriter<CharacterLandedMessage>,
+    mut query: Query<(Entity, &mut Transform, &mut Velocity, &mut MoveState)>,
+) {
+    for (entity, mut transform, mut velocity, mut state) in &mut query {
         if transform.translation.y <= 0.0 {
             transform.translation.y = 0.0;
             if velocity.0.y < 0.0 {
@@ -43,8 +41,8 @@ pub fn check_ground(mut query: Query<(&mut Transform, &mut Velocity, &mut MoveSt
             }
             if !state.grounded {
                 state.grounded = true;
-                state.just_landed = true;
                 state.mode = AirState::Grounded;
+                landed_writer.write(CharacterLandedMessage(entity));
             }
         }
     }

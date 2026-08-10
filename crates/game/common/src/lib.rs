@@ -11,9 +11,11 @@ pub mod prelude {
         GameplayPlugin,
         character::{
             Character, CharacterInput, CharacterLocomotion, CharacterPlugin, actions,
+            locomotion::CharacterLandedMessage,
             presentation::{
-                AnimationConfig, AnimationFrameIndex, AnimationTimer, CharacterAnimationMap,
-                CharacterAnimationState, PresentationPlugin,
+                AnimationFrame, AnimationPlaybackFlags, AnimationVideoSettings,
+                CharacterAnimationClip, CharacterAnimationState, CharacterManifestAsset,
+                CharacterManifestHandle, InterpolationMode, LoopMode, PresentationPlugin,
             },
         },
     };

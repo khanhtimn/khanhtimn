@@ -8,6 +8,10 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 log = { workspace = true }
 tracing = { workspace = true }
+serde = { workspace = true }
+ron = { workspace = true }
+bitflags = { workspace = true }
 
-bevy = { workspace = true, features = ["2d_api"] }
+bevy = { workspace = true, features = ["2d"] }
 bevy_enhanced_input = { workspace = true, features = ["default"] }
+bevy_common_assets = { workspace = true }

@@ -2950,8 +2950,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bevy",
+ "bevy_common_assets",
  "bevy_enhanced_input",
+ "bitflags 2.13.1",
  "log",
+ "ron 0.12.2",
+ "serde",
  "thiserror 2.0.19",
  "tracing",
 ]

@@ -1,64 +1,85 @@
-use bevy::{
-    ecs::component::Component,
-    platform::collections::HashMap,
-    prelude::{Deref, DerefMut, Handle, Image},
-    time::Timer,
-};
+use bevy::prelude::*;
+use bitflags::bitflags;
+use serde::{Deserialize, Serialize};
 
-/// Decouples visual frame rate parameters from game tick logic.
-///
-/// Allows animation speed (FPS) to be tuned independently per entity
-/// or dynamically altered by status effects without mutating frame sequences.
-#[derive(Component, Debug, Clone)]
-pub struct AnimationConfig {
-    pub fps: f32,
-}
+use super::manifest::CharacterManifestAsset;
 
-impl Default for AnimationConfig {
-    fn default() -> Self {
-        Self { fps: 12.5 }
+bitflags! {
+    /// Bitflags representing character animation playback and sprite rendering state.
+    #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
+    #[serde(transparent)]
+    pub struct AnimationPlaybackFlags: u8 {
+        const NONE        = 0b0000_0000;
+        const IS_FINISHED = 0b0000_0001;
+        const IS_PAUSED   = 0b0000_0010;
+        const FLIP_X      = 0b0000_0100;
+        const FLIP_Y      = 0b0000_1000;
     }
 }
 
-/// Internal timer driving keyframe transitions.
-///
-/// Ticked by Bevy's `Time` resource in the update schedule to signal when the visual
-/// sprite should advance to the next frame.
-#[derive(Component, Deref, DerefMut, Debug)]
-pub struct AnimationTimer(pub Timer);
+/// Network-replicated presentation state for character animations.
+/// Replicated via `bevy_replicon` (server-authoritative).
+#[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Default)]
+pub struct CharacterAnimationState {
+    /// Active clip index within the character's manifest (0..N).
+    pub clip_index: u16,
 
-/// Stores the zero-based index of the currently displayed animation keyframe.
-///
-/// Tracks progress through the active frame sequence. Separating index state
-/// from the image handle container allows external systems to inspect or reset
-/// animation progression cleanly.
-#[derive(Component, Default, Deref, DerefMut, Debug)]
-pub struct AnimationFrameIndex(pub usize);
+    /// Zero-based index of the current frame inside the active clip.
+    pub frame_index: u16,
 
-/// Categorizes high-level character presentation states.
-///
-/// Defines the semantic visual actions a character can express.
-/// Serves as the lookup key in [`CharacterAnimationMap`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub enum CharacterAnimationState {
-    #[default]
-    Idle,
-    Walk,
-    JumpUp,
-    JumpDown,
-    KnockDown,
+    /// Fixed 60Hz ticks elapsed within the current frame step.
+    pub elapsed_ticks: u16,
+
+    /// Hitstop/freeze counter (in ticks). Pauses animation progression when > 0.
+    pub hitstop_ticks: u16,
+
+    /// High-level playback status and sprite rendering flags.
+    pub flags: AnimationPlaybackFlags,
 }
 
-/// Data container mapping character states to frame image handle sequences.
-///
-/// Acts as a lightweight presentation palette holding loaded asset handles
-/// for each visual state.
-///
-/// *Architecture Note*: This is a naive POC structure for early prototyping.
-/// In future revisions, this will be rearchitected to integrate with a formal state machine
-/// or Bevy's `TextureAtlas` sprite sheets.
-#[derive(Component, Default, Debug, Clone)]
-pub struct CharacterAnimationMap {
-    pub current_state: CharacterAnimationState,
-    pub animations: HashMap<CharacterAnimationState, Vec<Handle<Image>>>,
+impl CharacterAnimationState {
+    pub fn is_finished(&self) -> bool {
+        self.flags.contains(AnimationPlaybackFlags::IS_FINISHED)
+    }
+
+    pub fn set_finished(&mut self, finished: bool) {
+        self.flags
+            .set(AnimationPlaybackFlags::IS_FINISHED, finished);
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.flags.contains(AnimationPlaybackFlags::IS_PAUSED)
+    }
+
+    pub fn set_paused(&mut self, paused: bool) {
+        self.flags.set(AnimationPlaybackFlags::IS_PAUSED, paused);
+    }
+}
+
+/// Handle pointing to the loaded `CharacterManifestAsset`.
+#[derive(Component, Debug, Clone, Deref, DerefMut)]
+pub struct CharacterManifestHandle(pub Handle<CharacterManifestAsset>);
+
+/// User video presentation settings resource for sub-frame animation smoothing.
+#[derive(Resource, Debug, Clone, Serialize, Deserialize)]
+pub struct AnimationVideoSettings {
+    pub interpolation_mode: InterpolationMode,
+    pub default_sprite_scale: f32,
+}
+
+impl Default for AnimationVideoSettings {
+    fn default() -> Self {
+        Self {
+            interpolation_mode: InterpolationMode::Discrete60Hz,
+            default_sprite_scale: 2.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum InterpolationMode {
+    #[default]
+    Discrete60Hz,
+    TransformInterpolated,
+    ShaderCrossfade,
 }

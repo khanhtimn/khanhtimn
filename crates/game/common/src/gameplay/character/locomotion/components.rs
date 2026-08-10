@@ -1,4 +1,7 @@
-use bevy::{ecs::component::Component, math::Vec2};
+use bevy::prelude::*;
+
+#[derive(Message, Debug, Clone, Copy)]
+pub struct CharacterLandedMessage(pub Entity);
 
 #[derive(Component, Debug)]
 pub struct MoveStats {
@@ -35,7 +38,6 @@ impl Default for MoveStats {
 pub struct MoveState {
     pub grounded: bool,
     pub crouching: bool,
-    pub just_landed: bool,
     pub coyote_timer: f32,
     pub jump_buffer_timer: f32,
     pub mode: AirState,
@@ -46,7 +48,6 @@ impl Default for MoveState {
         Self {
             grounded: true,
             crouching: false,
-            just_landed: false,
             coyote_timer: 0.0,
             jump_buffer_timer: 0.0,
             mode: AirState::Grounded,

@@ -2,4 +2,7 @@
     "background_audio": File(
         path: "audio/nightly.ogg",
     ),
+    "naruto_manifest": File(
+        path: "characters/naruto/naruto.ron",
+    ),
 })

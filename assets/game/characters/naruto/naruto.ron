@@ -1,18 +1,90 @@
-({
-    "naruto_idle": Files(
-        paths: [
-            "characters/naruto/textures/idle/1.png",
-            "characters/naruto/textures/idle/2.png",
-            "characters/naruto/textures/idle/3.png",
-            "characters/naruto/textures/idle/4.png",
-            "characters/naruto/textures/idle/5.png",
-            "characters/naruto/textures/idle/6.png",
-            "characters/naruto/textures/idle/7.png",
-            "characters/naruto/textures/idle/8.png",
-            "characters/naruto/textures/idle/9.png",
-            "characters/naruto/textures/idle/10.png",
-            "characters/naruto/textures/idle/11.png",
-            "characters/naruto/textures/idle/12.png",
-        ],
-    ),
-})
+(
+    id: "naruto",
+    name: "Naruto Uzumaki",
+    sheets: {
+        "idle": (
+            image: "characters/naruto/textures/idle/spritesheet.png",
+            tile_width: 39,
+            tile_height: 54,
+            columns: 4,
+            rows: 3,
+        ),
+        "walk": (
+            image: "characters/naruto/textures/walk/spritesheet.png",
+            tile_width: 42,
+            tile_height: 50,
+            columns: 4,
+            rows: 2,
+        ),
+        "jump": (
+            image: "characters/naruto/textures/jump/spritesheet.png",
+            tile_width: 45,
+            tile_height: 73,
+            columns: 4,
+            rows: 2,
+        ),
+    },
+    clips: [
+        (
+            name: "idle",
+            sheet: "idle",
+            loop_mode: Repeat,
+            frames: [
+                (sprite_index: 0, duration_ticks: 3, pivot: None),
+                (sprite_index: 1, duration_ticks: 3, pivot: None),
+                (sprite_index: 2, duration_ticks: 3, pivot: None),
+                (sprite_index: 3, duration_ticks: 3, pivot: None),
+                (sprite_index: 4, duration_ticks: 3, pivot: None),
+                (sprite_index: 5, duration_ticks: 3, pivot: None),
+                (sprite_index: 6, duration_ticks: 3, pivot: None),
+                (sprite_index: 7, duration_ticks: 3, pivot: None),
+                (sprite_index: 8, duration_ticks: 3, pivot: None),
+                (sprite_index: 9, duration_ticks: 3, pivot: None),
+                (sprite_index: 10, duration_ticks: 3, pivot: None),
+                (sprite_index: 11, duration_ticks: 3, pivot: None),
+            ],
+        ),
+        (
+            name: "walk",
+            sheet: "walk",
+            loop_mode: Repeat,
+            frames: [
+                (sprite_index: 0, duration_ticks: 3, pivot: None),
+                (sprite_index: 1, duration_ticks: 3, pivot: None),
+                (sprite_index: 2, duration_ticks: 3, pivot: None),
+                (sprite_index: 3, duration_ticks: 3, pivot: None),
+                (sprite_index: 4, duration_ticks: 3, pivot: None),
+                (sprite_index: 5, duration_ticks: 3, pivot: None),
+                (sprite_index: 6, duration_ticks: 3, pivot: None),
+            ],
+        ),
+        (
+            name: "jump_up",
+            sheet: "jump",
+            loop_mode: HoldLast,
+            frames: [
+                (sprite_index: 0, duration_ticks: 3, pivot: None),
+                (sprite_index: 1, duration_ticks: 3, pivot: None),
+                (sprite_index: 2, duration_ticks: 3, pivot: None),
+            ],
+        ),
+        (
+            name: "jump_down",
+            sheet: "jump",
+            loop_mode: HoldLast,
+            frames: [
+                (sprite_index: 3, duration_ticks: 3, pivot: None),
+                (sprite_index: 4, duration_ticks: 3, pivot: None),
+            ],
+        ),
+        (
+            name: "jump_land",
+            sheet: "jump",
+            loop_mode: Once,
+            frames: [
+                (sprite_index: 5, duration_ticks: 3, pivot: None),
+                (sprite_index: 6, duration_ticks: 3, pivot: None),
+            ],
+        ),
+    ],
+)
