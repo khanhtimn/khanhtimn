@@ -21,83 +21,88 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust nightly
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
 
-      - name: Check formatting
+      - name: Check format
         run: cargo fmt --all -- --check
 
-  clippy-lints:
-    name: Clippy lints
+  clippy:
+    name: Clippy
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust nightly
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
           components: clippy
           targets: wasm32-unknown-unknown
 
-      - name: Restore Rust cache
+      - name: Cache
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: ci
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Run Clippy lints (native packages)
+      - name: Clippy (native)
         run: cargo clippy --locked --package personal-page --package game-server --package game-common --package xtask --all-targets --profile ci
 
-      - name: Run Clippy lints (WASM game client)
-        run: cargo clippy --locked --package game-client --target wasm32-unknown-unknown --profile ci
+      - name: Clippy (WASM)
+        run: cargo clippy --locked --package game-client --package game-common --target wasm32-unknown-unknown --profile ci
 
   tests:
     name: Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust nightly
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: wasm32-unknown-unknown
 
-      - name: Restore Rust cache
+      - name: Cache
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: test
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Run unit & integration tests
-        run: cargo test --locked --package personal-page --package game-server --package game-common --profile ci
+      - name: Test (native)
+        run: cargo test --locked --package personal-page --package game-server --package game-common --package xtask --profile ci
 
-  check-build:
-    name: Check build
+      - name: Test (WASM - game-common)
+        run: cargo test --locked --package game-common --target wasm32-unknown-unknown --no-run --profile ci
+
+  check:
+    name: Check
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust nightly
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
           targets: wasm32-unknown-unknown
 
-      - name: Restore Rust cache
+      - name: Cache
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: build-ci
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Install cargo-binstall
+      - name: Install binstall
         uses: cargo-bins/cargo-binstall@main
 
       - name: Install wasm-pack
@@ -106,8 +111,10 @@ jobs:
       - name: Build WASM client
         run: cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg
 
-      - name: Check personal-page build
-        run: cargo check --locked --package personal-page --profile ci
+      - name: Check (native packages)
+        run: cargo check --locked --package personal-page --package game-server --package game-common --package xtask --profile ci
 
-      - name: Check game-server build
-        run: cargo check --locked --package game-server --profile ci
+      - name: Check (WASM game-common)
+        run: cargo check --locked --package game-common --target wasm32-unknown-unknown --profile ci
+
+
