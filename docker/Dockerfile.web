@@ -41,8 +41,8 @@ COPY --from=builder /app/target/assets /app/target/assets
 COPY --from=builder /app/assets /app/assets
 
 ENV RUST_LOG="info"
-ENV PORT="8080"
+ENV PORT="3000"
 
-EXPOSE 8080
+EXPOSE 3000
 
 CMD ["/app/personal-page"]
