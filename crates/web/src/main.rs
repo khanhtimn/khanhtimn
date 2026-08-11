@@ -14,11 +14,15 @@ use topcoat::{
 };
 
 static WORKSPACE_ASSETS_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .map(|p| p.join("assets"))
-        .unwrap_or_else(|| PathBuf::from("assets"))
+    if let Ok(env_path) = std::env::var("ASSETS_DIR") {
+        PathBuf::from(env_path)
+    } else {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(|p| p.parent())
+            .map(|p| p.join("assets"))
+            .unwrap_or_else(|| PathBuf::from("assets"))
+    }
 });
 
 #[route(GET "/assets/{*file_path}")]
@@ -116,18 +120,14 @@ async fn main() -> Result<()> {
 
 async fn run() -> Result<()> {
     println!("Starting personal-page server...");
+    let assets_dir = std::env::var("ASSETS_DIR").unwrap_or_else(|_| "assets".to_string());
     println!("Current Directory: {:?}", std::env::current_dir());
-    println!("Loading AssetBundle from target/assets...");
+    println!("Loading AssetBundle from {assets_dir}...");
 
-    let assets = match AssetBundle::load_dir("target/assets") {
-        Ok(bundle) => bundle,
-        Err(err) => {
-            eprintln!(
-                "Warning: Could not load AssetBundle from target/assets ({err:?}). Falling back to empty AssetBundle."
-            );
-            AssetBundle::load()?
-        }
-    };
+    let assets = AssetBundle::load_dir(&assets_dir)
+        .or_else(|_| AssetBundle::load())
+        .unwrap_or_default();
+
     let router = Router::builder().discover().assets(assets).build();
 
     println!("Starting Topcoat router...");
