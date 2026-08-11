@@ -125,8 +125,7 @@ async fn run() -> Result<()> {
     println!("Loading AssetBundle from {assets_dir}...");
 
     let assets = AssetBundle::load_dir(&assets_dir)
-        .or_else(|_| AssetBundle::load())
-        .unwrap_or_default();
+        .or_else(|_| AssetBundle::load())?;
 
     let router = Router::builder().discover().assets(assets).build();
 
