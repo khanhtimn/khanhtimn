@@ -24,9 +24,10 @@ ENV RUSTFLAGS="-Zshare-generics=y -Zthreads=0"
 # Step A: Build release WASM client into assets/game/pkg so asset!() macros can resolve game assets
 RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
 
+# Set target-specific flags for native x86_64 compilation (LLD linker + Xeon CPU SIMD vectorization)
 ENV RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
 
-# Pre-create target asset directories before compilation
+# Pre-create target asset directories before compilation so Topcoat asset!() proc-macros can output files into them
 RUN mkdir -p /app/target/assets /app/crates/web/target/assets
 
 # Step B: Build native release web server
@@ -35,7 +36,7 @@ RUN cargo build --release -p personal-page
 # Consolidate any crate-level target assets into workspace target/assets
 RUN if [ -d /app/crates/web/target/assets ]; then cp -r /app/crates/web/target/assets/* /app/target/assets/ 2>/dev/null || true; fi
 
-# Stage 2: Runtime image (Debian Bookworm Slim)
+# Stage 2: Runtime image (Debian Bookworm Slim) with debugging & inspection utilities
 FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -64,4 +65,5 @@ ENV PORT="3000"
 
 EXPOSE 3000
 
-CMD ["/app/personal-page"]
+# Keep container running with sleep infinity if personal-page exits, allowing docker exec inspection
+CMD ["sh", "-c", "/app/personal-page || sleep infinity"]
