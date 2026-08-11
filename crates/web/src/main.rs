@@ -125,12 +125,19 @@ async fn run() -> Result<()> {
             eprintln!(
                 "Warning: Could not load AssetBundle from target/assets ({err:?}). Falling back to empty AssetBundle."
             );
-            AssetBundle::default()
+            AssetBundle::load()?
         }
     };
     let router = Router::builder().discover().assets(assets).build();
 
-    topcoat::start(router).await?;
+    println!("Starting Topcoat router...");
+    if let Err(err) = topcoat::start(router).await {
+        eprintln!("================================================");
+        eprintln!("TOPCOAT START FAILED WITH ERROR: {err:?}");
+        eprintln!("Current Directory: {:?}", std::env::current_dir());
+        eprintln!("================================================");
+        return Err(err.into());
+    }
     Ok(())
 }
 

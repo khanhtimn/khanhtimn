@@ -13,6 +13,7 @@ RUN rustup toolchain install nightly && \
     rustup default nightly && \
     rustup target add wasm32-unknown-unknown
 
+# Install wasm-pack
 RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 WORKDIR /app
@@ -20,16 +21,21 @@ COPY . .
 
 ENV RUSTFLAGS="-Zshare-generics=y -Zthreads=0"
 
+# Step A: Build release WASM client into assets/game/pkg so asset!() macros can resolve game assets
 RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
 
 ENV RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
 
+# Pre-create target asset directories before compilation
 RUN mkdir -p /app/target/assets /app/crates/web/target/assets
 
+# Step B: Build native release web server
 RUN cargo build --release -p personal-page
 
+# Consolidate any crate-level target assets into workspace target/assets
 RUN if [ -d /app/crates/web/target/assets ]; then cp -r /app/crates/web/target/assets/* /app/target/assets/ 2>/dev/null || true; fi
 
+# Stage 2: Runtime image (Debian Bookworm Slim)
 FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -49,11 +55,13 @@ COPY --from=builder /app/target/release/personal-page /app/personal-page
 COPY --from=builder /app/target/assets /app/target/assets
 COPY --from=builder /app/assets /app/assets
 
-ENV RUST_LOG="debug"
+# Symlink crates/web/target/assets -> /app/target/assets so Topcoat path resolution succeeds from any CWD or manifest path
+RUN mkdir -p /app/crates/web/target && ln -s /app/target/assets /app/crates/web/target/assets
+
+ENV RUST_LOG="info"
 ENV RUST_BACKTRACE="1"
 ENV PORT="3000"
 
 EXPOSE 3000
-
 
 CMD ["/app/personal-page"]
