@@ -99,6 +99,23 @@ async fn serve_game_assets(cx: &Cx) -> Result<Response> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    if let Err(err) = run().await {
+        eprintln!("================================================");
+        eprintln!("CRITICAL ERROR ON STARTUP: {err:?}");
+        eprintln!("Current Directory: {:?}", std::env::current_dir());
+        eprintln!("target/assets exists? {}", std::path::Path::new("target/assets").exists());
+        eprintln!("assets exists? {}", std::path::Path::new("assets").exists());
+        eprintln!("================================================");
+        return Err(err);
+    }
+    Ok(())
+}
+
+async fn run() -> Result<()> {
+    println!("Starting personal-page server...");
+    println!("Current Directory: {:?}", std::env::current_dir());
+    println!("Loading AssetBundle from target/assets...");
+
     let assets = AssetBundle::load_dir("target/assets")?;
     let router = Router::builder().discover().assets(assets).build();
 
