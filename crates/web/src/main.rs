@@ -103,7 +103,10 @@ async fn main() -> Result<()> {
         eprintln!("================================================");
         eprintln!("CRITICAL ERROR ON STARTUP: {err:?}");
         eprintln!("Current Directory: {:?}", std::env::current_dir());
-        eprintln!("target/assets exists? {}", std::path::Path::new("target/assets").exists());
+        eprintln!(
+            "target/assets exists? {}",
+            std::path::Path::new("target/assets").exists()
+        );
         eprintln!("assets exists? {}", std::path::Path::new("assets").exists());
         eprintln!("================================================");
         return Err(err);
@@ -116,7 +119,15 @@ async fn run() -> Result<()> {
     println!("Current Directory: {:?}", std::env::current_dir());
     println!("Loading AssetBundle from target/assets...");
 
-    let assets = AssetBundle::load_dir("target/assets")?;
+    let assets = match AssetBundle::load_dir("target/assets") {
+        Ok(bundle) => bundle,
+        Err(err) => {
+            eprintln!(
+                "Warning: Could not load AssetBundle from target/assets ({err:?}). Falling back to empty AssetBundle."
+            );
+            AssetBundle::default()
+        }
+    };
     let router = Router::builder().discover().assets(assets).build();
 
     topcoat::start(router).await?;
