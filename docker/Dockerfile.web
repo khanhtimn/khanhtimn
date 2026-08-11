@@ -24,14 +24,23 @@ RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../ass
 
 ENV RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
 
-RUN mkdir -p /app/target/assets
+RUN mkdir -p /app/target/assets /app/crates/web/target/assets
 
 RUN cargo build --release -p personal-page
+
+RUN if [ -d /app/crates/web/target/assets ]; then cp -r /app/crates/web/target/assets/* /app/target/assets/ 2>/dev/null || true; fi
 
 FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    bash \
+    curl \
+    findutils \
+    procps \
+    tree \
+    less \
+    file \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
