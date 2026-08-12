@@ -13,9 +13,12 @@ RUN rustup toolchain install nightly && \
 WORKDIR /app
 COPY . .
 
-ENV RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
+ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
 
-RUN cargo build --release -p game-server
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    cargo build --release -p game-server
 
 FROM debian:bookworm-slim AS runtime
 

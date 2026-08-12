@@ -22,19 +22,28 @@ COPY . .
 
 ENV RUSTFLAGS="-Zshare-generics=y -Zthreads=0"
 
-RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
 
 ENV ASSETS_DIR="/app/assets"
-ENV RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
+ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
 
 RUN mkdir -p /app/target/assets && \
     cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true
 
-RUN topcoat asset bundle -p personal-page --release
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    topcoat asset bundle -p personal-page --release
 
 RUN cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true
 
-RUN cargo build --release -p personal-page
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    cargo build --release -p personal-page
 
 FROM debian:bookworm-slim AS runtime
 
