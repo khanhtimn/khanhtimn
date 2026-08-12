@@ -13,6 +13,9 @@ RUN rustup toolchain install nightly && \
     rustup default nightly && \
     rustup target add wasm32-unknown-unknown
 
+RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
+    cargo binstall topcoat -y
+
 RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 WORKDIR /app
@@ -22,8 +25,7 @@ ENV RUSTFLAGS="-Zshare-generics=y -Zthreads=0"
 
 RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
 
-RUN mkdir -p /app/assets /app/target/assets /app/crates/web/target/assets && \
-    cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true
+RUN topcoat asset bundle -p personal-page --release
 
 ENV ASSETS_DIR="/app/assets"
 ENV RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
@@ -46,7 +48,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 COPY --from=builder /app/target/release/personal-page /app/personal-page
-COPY --from=builder /app/assets /app/assets
+COPY --from=builder /app/target/release/assets /app/assets
 
 ENV ASSETS_DIR="/app/assets"
 ENV RUST_LOG="info"
