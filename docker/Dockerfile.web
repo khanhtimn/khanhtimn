@@ -30,20 +30,16 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 ENV ASSETS_DIR="/app/assets"
 ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
 
-RUN mkdir -p /app/target/assets && \
-    cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true
-
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/app/target \
-    topcoat asset bundle -p personal-page --release
-
-RUN cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true
-
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/app/target \
-    cargo build --release -p personal-page
+    mkdir -p /app/target/assets /app/dist && \
+    cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true && \
+    topcoat asset bundle -p personal-page --release && \
+    cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true && \
+    cargo build --release -p personal-page && \
+    cp /app/target/release/personal-page /app/dist/personal-page && \
+    cp -r /app/target/assets /app/dist/assets
 
 FROM debian:bookworm-slim AS runtime
 
@@ -60,8 +56,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/personal-page /app/personal-page
-COPY --from=builder /app/target/assets /app/assets
+COPY --from=builder /app/dist/personal-page /app/personal-page
+COPY --from=builder /app/dist/assets /app/assets
 
 ENV ASSETS_DIR="/app/assets"
 ENV HOST="0.0.0.0"

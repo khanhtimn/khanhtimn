@@ -3,6 +3,7 @@ FROM rust:1-slim-bookworm AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
     clang \
     lld \
+    curl \
     ca-certificates \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
@@ -21,7 +22,9 @@ ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=lld -Zshare-generics
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/app/target \
-    cargo build --release -p game-server
+    cargo build --release -p game-server && \
+    mkdir -p /app/dist && \
+    cp /app/target/release/game-server /app/dist/game-server
 
 FROM debian:bookworm-slim AS runtime
 
@@ -31,7 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/game-server /app/game-server
+COPY --from=builder /app/dist/game-server /app/game-server
 
 ENV RUST_LOG="info"
 
