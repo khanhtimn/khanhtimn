@@ -14,9 +14,8 @@ RUN rustup toolchain install nightly && \
     rustup target add wasm32-unknown-unknown
 
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
-    cargo binstall topcoat-cli -y
-
-RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+    cargo binstall topcoat-cli -y && \
+    curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 WORKDIR /app
 COPY . .
@@ -25,10 +24,14 @@ ENV RUSTFLAGS="-Zshare-generics=y -Zthreads=0"
 
 RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
 
-RUN topcoat asset bundle -p personal-page --release
-
 ENV ASSETS_DIR="/app/assets"
 ENV RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
+
+RUN mkdir -p /app/target/assets /app/target/release/assets
+
+RUN topcoat asset bundle -p personal-page --release
+
+RUN if [ -d /app/target/release/assets ]; then cp -r /app/target/release/assets/* /app/target/assets/ 2>/dev/null || true; fi
 
 RUN cargo build --release -p personal-page
 
@@ -48,7 +51,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 COPY --from=builder /app/target/release/personal-page /app/personal-page
-COPY --from=builder /app/target/release/assets /app/assets
+COPY --from=builder /app/target/assets /app/target/assets
+COPY --from=builder /app/assets /app/assets
+
+# Symlink executable-relative target/release/assets path to /app/target/assets
+RUN mkdir -p /app/target/release && \
+    ln -s /app/target/assets /app/target/release/assets
 
 ENV ASSETS_DIR="/app/assets"
 ENV RUST_LOG="info"
