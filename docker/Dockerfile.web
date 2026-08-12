@@ -14,7 +14,7 @@ RUN rustup toolchain install nightly && \
     rustup target add wasm32-unknown-unknown
 
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
-    cargo binstall topcoat -y
+    cargo binstall topcoat-cli -y
 
 RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
