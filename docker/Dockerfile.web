@@ -27,11 +27,9 @@ RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../ass
 ENV ASSETS_DIR="/app/assets"
 ENV RUSTFLAGS="-C target-cpu=native -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
 
-RUN mkdir -p /app/target/assets /app/target/release/assets
+RUN mkdir -p /app/target/assets
 
 RUN topcoat asset bundle -p personal-page --release
-
-RUN if [ -d /app/target/release/assets ]; then cp -r /app/target/release/assets/* /app/target/assets/ 2>/dev/null || true; fi
 
 RUN cargo build --release -p personal-page
 
@@ -52,11 +50,7 @@ WORKDIR /app
 
 COPY --from=builder /app/target/release/personal-page /app/personal-page
 COPY --from=builder /app/target/assets /app/target/assets
-COPY --from=builder /app/assets /app/assets
-
-# Symlink executable-relative target/release/assets path to /app/target/assets
-RUN mkdir -p /app/target/release && \
-    ln -s /app/target/assets /app/target/release/assets
+COPY --from=builder /app/target/assets /app/assets
 
 ENV ASSETS_DIR="/app/assets"
 ENV RUST_LOG="info"
