@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN rustup toolchain install nightly && \
     rustup default nightly
 
+RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
+    cargo binstall sccache -y
+
 WORKDIR /app
 COPY . .
 
