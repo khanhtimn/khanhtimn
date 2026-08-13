@@ -13,7 +13,14 @@ log = { workspace = true }
 tracing = { workspace = true }
 game-common = { path = "../common" }
 
-bevy = { workspace = true, features = ["2d", "web", "http", "https", "audio"] }
+bevy = { workspace = true, features = [
+    "2d",
+    "web",
+    "webgpu",
+    "http",
+    "https",
+    "audio",
+] }
 bevy_enhanced_input = { workspace = true, features = ["default"] }
 bevy_asset_loader = { workspace = true, features = [
     "2d",
@@ -28,4 +35,4 @@ console_error_panic_hook = "0.1.7"
 wasm-opt = false
 
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = ["-Os"]
+wasm-opt = ["-O"]
