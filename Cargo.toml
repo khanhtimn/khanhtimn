@@ -59,16 +59,19 @@ codegen-units = 1
 # Slows compile times, marginal improvements.
 lto = "fat"
 
-# Optimize for size in the wasm-release profile to reduce load times and bandwidth usage on web.
-[profile.wasm-release]
-# Default to release profile values.
-inherits = "release"
-# Optimize with size in mind (also try "z", sometimes it is better).
-# Slightly slows compile times, great improvements to file size and runtime performance.
+# WASM client: optimize for size to reduce load times and bandwidth on web.
+[profile.release.package.game-client]
 opt-level = "z"
-# Strip all debugging information from the binary to slightly reduce file size.
 strip = "debuginfo"
-panic = "abort"
+
+# Native server binaries: optimize for runtime performance.
+[profile.release.package.personal-page]
+opt-level = 3
+strip = "symbols"
+
+[profile.release.package.game-server]
+opt-level = 3
+strip = "symbols"
 
 # Optimize for build time in CI.
 [profile.ci]
