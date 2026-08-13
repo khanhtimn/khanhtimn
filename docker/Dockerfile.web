@@ -22,24 +22,39 @@ COPY . .
 
 ENV RUSTFLAGS="-Zshare-generics=y -Zthreads=0"
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
+RUN --mount=type=secret,id=actions_cache_url,required=false \
+    --mount=type=secret,id=actions_runtime_token,required=false \
+    --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/app/target \
+    if [ -f /run/secrets/actions_cache_url ]; then \
+      export SCCACHE_GHA_ENABLED=on; \
+      export ACTIONS_CACHE_URL=$(cat /run/secrets/actions_cache_url); \
+      export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/actions_runtime_token); \
+      export RUSTC_WRAPPER=sccache; \
+    fi && \
     cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
 
 ENV ASSETS_DIR="/app/assets"
 ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
+RUN --mount=type=secret,id=actions_cache_url,required=false \
+    --mount=type=secret,id=actions_runtime_token,required=false \
+    --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/app/target \
+    if [ -f /run/secrets/actions_cache_url ]; then \
+      export SCCACHE_GHA_ENABLED=on; \
+      export ACTIONS_CACHE_URL=$(cat /run/secrets/actions_cache_url); \
+      export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/actions_runtime_token); \
+      export RUSTC_WRAPPER=sccache; \
+    fi && \
     mkdir -p /app/target/assets /app/dist && \
     cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true && \
     topcoat asset bundle -p personal-page --release && \
     cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true && \
     cp /app/target/release/personal-page /app/dist/personal-page && \
-    cp -r /app/target/assets /app/dist/assets && \
-    ls -lh /app/dist/personal-page
+    cp -r /app/target/assets /app/dist/assets
 
 FROM debian:bookworm-slim AS runtime
 

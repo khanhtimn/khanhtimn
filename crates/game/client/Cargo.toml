@@ -13,13 +13,7 @@ log = { workspace = true }
 tracing = { workspace = true }
 game-common = { path = "../common" }
 
-bevy = { workspace = true, features = [
-    "2d",
-    "webgpu",
-    "http",
-    "https",
-    "audio",
-] }
+bevy = { workspace = true, features = ["2d", "web", "http", "https", "audio"] }
 bevy_enhanced_input = { workspace = true, features = ["default"] }
 bevy_asset_loader = { workspace = true, features = [
     "2d",

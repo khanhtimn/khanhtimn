@@ -19,9 +19,17 @@ COPY . .
 
 ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
+RUN --mount=type=secret,id=actions_cache_url,required=false \
+    --mount=type=secret,id=actions_runtime_token,required=false \
+    --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/app/target \
+    if [ -f /run/secrets/actions_cache_url ]; then \
+      export SCCACHE_GHA_ENABLED=on; \
+      export ACTIONS_CACHE_URL=$(cat /run/secrets/actions_cache_url); \
+      export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/actions_runtime_token); \
+      export RUSTC_WRAPPER=sccache; \
+    fi && \
     cargo build --release -p game-server && \
     mkdir -p /app/dist && \
     cp /app/target/release/game-server /app/dist/game-server
