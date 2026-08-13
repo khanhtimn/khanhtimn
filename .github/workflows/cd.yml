@@ -45,9 +45,6 @@ jobs:
             type=semver,pattern={{major}}
             type=raw,value=latest
 
-      - name: Expose GitHub Actions cache env
-        uses: crazy-max/ghaction-github-runtime@v3
-
       - name: Build and push personal-page Docker image
         uses: docker/build-push-action@v6
         with:
@@ -59,9 +56,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
-          secrets: |
-            actions_cache_url=${{ env.ACTIONS_CACHE_URL }}
-            actions_runtime_token=${{ env.ACTIONS_RUNTIME_TOKEN }}
 
   push-game-server:
     name: Build & Push Game Server Docker Image
@@ -95,9 +89,6 @@ jobs:
             type=semver,pattern={{major}}
             type=raw,value=latest
 
-      - name: Expose GitHub Actions cache env
-        uses: crazy-max/ghaction-github-runtime@v3
-
       - name: Build and push game-server Docker image
         uses: docker/build-push-action@v6
         with:
@@ -109,6 +100,3 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
-          secrets: |
-            actions_cache_url=${{ env.ACTIONS_CACHE_URL }}
-            actions_runtime_token=${{ env.ACTIONS_RUNTIME_TOKEN }}

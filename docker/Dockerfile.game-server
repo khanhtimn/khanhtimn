@@ -1,8 +1,8 @@
-FROM rust:1-slim-bookworm AS builder
+FROM rust:1-slim-bookworm AS chef
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     clang \
-    lld \
+    mold \
     curl \
     ca-certificates \
     pkg-config \
@@ -11,32 +11,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN rustup toolchain install nightly && \
     rustup default nightly
 
-RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
-    cargo binstall sccache -y
+RUN curl -L --proto '=https' --tlsv1.2 -sSf \
+    https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
+    cargo binstall cargo-chef -y
 
 WORKDIR /app
+
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+
+ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=mold -Zshare-generics=y -Zthreads=0"
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo chef cook --release --recipe-path recipe.json
+
 COPY . .
 
-ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
-
-RUN --mount=type=secret,id=actions_cache_url,required=false \
-    --mount=type=secret,id=actions_runtime_token,required=false \
-    --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/app/target \
-    if [ -f /run/secrets/actions_cache_url ]; then \
-      export SCCACHE_GHA_ENABLED=on; \
-      export ACTIONS_CACHE_URL=$(cat /run/secrets/actions_cache_url); \
-      export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/actions_runtime_token); \
-      if sccache --start-server 2>/dev/null; then \
-        export RUSTC_WRAPPER=sccache; \
-        echo "sccache: GHA backend enabled"; \
-      else \
-        echo "sccache: server startup failed, building without cache"; \
-        unset SCCACHE_GHA_ENABLED ACTIONS_CACHE_URL ACTIONS_RUNTIME_TOKEN; \
-      fi; \
-    fi && \
-    cargo build --release -p game-server && \
+RUN cargo build --release -p game-server && \
     mkdir -p /app/dist && \
     cp /app/target/release/game-server /app/dist/game-server
 

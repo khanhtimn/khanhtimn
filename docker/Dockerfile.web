@@ -1,8 +1,8 @@
-FROM rust:1-slim-bookworm AS builder
+FROM rust:1-slim-bookworm AS chef
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     clang \
-    lld \
+    mold \
     curl \
     ca-certificates \
     pkg-config \
@@ -13,55 +13,38 @@ RUN rustup toolchain install nightly && \
     rustup default nightly && \
     rustup target add wasm32-unknown-unknown
 
-RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
-    cargo binstall topcoat-cli sccache -y && \
+RUN curl -L --proto '=https' --tlsv1.2 -sSf \
+    https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
+    cargo binstall topcoat-cli cargo-chef -y && \
     curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 WORKDIR /app
+
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    RUSTFLAGS="-Zshare-generics=y -Zthreads=0 --cfg getrandom_backend=\"wasm_js\"" \
+    cargo chef cook --release --target wasm32-unknown-unknown --recipe-path recipe.json
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=mold -Zshare-generics=y -Zthreads=0" \
+    cargo chef cook --release --recipe-path recipe.json
+
 COPY . .
 
-ENV RUSTFLAGS="-Zshare-generics=y -Zthreads=0"
-
-RUN --mount=type=secret,id=actions_cache_url,required=false \
-    --mount=type=secret,id=actions_runtime_token,required=false \
-    --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/app/target \
-    if [ -f /run/secrets/actions_cache_url ]; then \
-      export SCCACHE_GHA_ENABLED=on; \
-      export ACTIONS_CACHE_URL=$(cat /run/secrets/actions_cache_url); \
-      export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/actions_runtime_token); \
-      if sccache --start-server 2>/dev/null; then \
-        export RUSTC_WRAPPER=sccache; \
-        echo "sccache: GHA backend enabled"; \
-      else \
-        echo "sccache: server startup failed, building without cache"; \
-        unset SCCACHE_GHA_ENABLED ACTIONS_CACHE_URL ACTIONS_RUNTIME_TOKEN; \
-      fi; \
-    fi && \
-    cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
+ENV RUSTFLAGS="-Zshare-generics=y -Zthreads=0 --cfg getrandom_backend=\"wasm_js\""
+RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
 
 ENV ASSETS_DIR="/app/assets"
-ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=lld -Zshare-generics=y -Zthreads=0"
-
-RUN --mount=type=secret,id=actions_cache_url,required=false \
-    --mount=type=secret,id=actions_runtime_token,required=false \
-    --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/local/cargo/git \
-    --mount=type=cache,target=/app/target \
-    if [ -f /run/secrets/actions_cache_url ]; then \
-      export SCCACHE_GHA_ENABLED=on; \
-      export ACTIONS_CACHE_URL=$(cat /run/secrets/actions_cache_url); \
-      export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/actions_runtime_token); \
-      if sccache --start-server 2>/dev/null; then \
-        export RUSTC_WRAPPER=sccache; \
-        echo "sccache: GHA backend enabled"; \
-      else \
-        echo "sccache: server startup failed, building without cache"; \
-        unset SCCACHE_GHA_ENABLED ACTIONS_CACHE_URL ACTIONS_RUNTIME_TOKEN; \
-      fi; \
-    fi && \
-    mkdir -p /app/target/assets /app/dist && \
+ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=mold -Zshare-generics=y -Zthreads=0"
+RUN mkdir -p /app/target/assets /app/dist && \
     cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true && \
     topcoat asset bundle -p personal-page --release && \
     cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true && \
