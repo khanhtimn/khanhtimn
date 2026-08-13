@@ -28,7 +28,13 @@ RUN --mount=type=secret,id=actions_cache_url,required=false \
       export SCCACHE_GHA_ENABLED=on; \
       export ACTIONS_CACHE_URL=$(cat /run/secrets/actions_cache_url); \
       export ACTIONS_RUNTIME_TOKEN=$(cat /run/secrets/actions_runtime_token); \
-      export RUSTC_WRAPPER=sccache; \
+      if sccache --start-server 2>/dev/null; then \
+        export RUSTC_WRAPPER=sccache; \
+        echo "sccache: GHA backend enabled"; \
+      else \
+        echo "sccache: server startup failed, building without cache"; \
+        unset SCCACHE_GHA_ENABLED ACTIONS_CACHE_URL ACTIONS_RUNTIME_TOKEN; \
+      fi; \
     fi && \
     cargo build --release -p game-server && \
     mkdir -p /app/dist && \
