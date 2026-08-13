@@ -28,7 +28,7 @@ ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=mold -Zshare-generic
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo chef cook --release --recipe-path recipe.json
+    cargo chef cook --release --package game-server --recipe-path recipe.json
 
 COPY . .
 
