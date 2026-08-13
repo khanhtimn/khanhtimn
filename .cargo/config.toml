@@ -1,11 +1,7 @@
 [alias]
 dev = "run -p xtask -- dev"
 
-[build]
-rustc-wrapper = "sccache"
-
 # Copy this file to `config.toml` to speed up your builds.
-
 #
 # # Faster linker
 #
