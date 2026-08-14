@@ -5,13 +5,15 @@ use bevy_asset_loader::{
     standard_dynamic_asset::StandardDynamicAssetCollection,
 };
 use bevy_enhanced_input::prelude::*;
-use game_common::prelude::*;
+use game_common::{gameplay::character::locomotion::Facing, prelude::*};
 use iyes_progress::ProgressPlugin;
 
 pub fn run() {
     let mut app = App::new();
 
-    app.insert_resource(ClearColor(Color::WHITE));
+    let background_color = Srgba::hex("#121110").unwrap_or(Color::WHITE.into());
+
+    app.insert_resource(ClearColor(Color::Srgba(background_color)));
 
     app.add_plugins(
         DefaultPlugins
@@ -94,9 +96,10 @@ fn spawn_character(mut commands: Commands, char_assets: Res<CharacterAssets>) {
     commands.spawn((
         Name::new("Test character"),
         Sprite::default(),
-        Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(2.0)),
+        Transform::from_xyz(300.0, -100.0, 0.0).with_scale(Vec3::splat(2.0)),
         CharacterManifestHandle(char_assets.naruto.clone()),
         Character,
+        Facing::Left,
         CharacterInput,
         CharacterAnimationState::default(),
         Actions::<CharacterInput>::spawn(SpawnWith(|context: &mut ActionSpawner<_>| {
@@ -137,34 +140,6 @@ fn spawn_character(mut commands: Commands, char_assets: Res<CharacterAssets>) {
                 bindings![KeyCode::KeyL, KeyCode::Numpad3],
             ));
         })),
-        // actions!(
-        //     CharacterInput[
-        //         (
-        //             Action::<actions::Move>::new(),
-        //             DeadZone::default(),
-        //             Bindings::spawn((
-        //                 Bidirectional::new(KeyCode::KeyD, KeyCode::KeyA),
-        //                 Bidirectional::new(KeyCode::ArrowRight, KeyCode::ArrowLeft),
-        //             )),
-        //         ),
-        //         (
-        //             Action::<actions::Jump>::new(),
-        //             bindings![KeyCode::Space, KeyCode::KeyK, KeyCode::Numpad2]
-        //         ),
-        //         (
-        //             Action::<actions::Crouch>::new(),
-        //             bindings![KeyCode::KeyS, KeyCode::ArrowDown, KeyCode::Numpad1]
-        //         ),
-        //         (
-        //             Action::<actions::UpModifier>::new(),
-        //             bindings![KeyCode::KeyW, KeyCode::ArrowUp]
-        //         ),
-        //         (
-        //             Action::<actions::Dash>::new(),
-        //             bindings![KeyCode::KeyL, KeyCode::Numpad3]
-        //         ),
-        //     ]
-        // ),
     ));
 }
 
