@@ -12,7 +12,8 @@ RUN rustup toolchain install nightly && \
 
 RUN curl -L --proto '=https' --tlsv1.2 -sSf \
     https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
-    cargo binstall cargo-chef wild-linker -y
+    cargo binstall cargo-chef wild-linker -y && \
+    ln -s /usr/local/cargo/bin/wild /usr/local/cargo/bin/ld.wild
 
 WORKDIR /app
 
@@ -23,7 +24,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
 
-ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C linker=clang -C link-arg=--ld-path=wild -Zshare-generics=y -Zthreads=0"
+ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C linker=clang -C link-arg=-fuse-ld=wild -Zshare-generics=y -Zthreads=0"
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \

@@ -12,7 +12,7 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: -Dwarnings -Zshare-generics=y -Zthreads=0 -Clinker=clang -Clink-arg=--ld-path=wild
+  RUSTFLAGS: -Dwarnings -Zshare-generics=y -Zthreads=0 -Clinker=clang -Clink-arg=-fuse-ld=wild
   RUSTDOCFLAGS: -Dwarnings -Zshare-generics=y -Zthreads=0
   RUSTC_WRAPPER: "sccache"
   SCCACHE_GHA_ENABLED: "true"
@@ -51,6 +51,14 @@ jobs:
       - name: Install Wild linker
         uses: wild-linker/action@latest
 
+      - name: Symlink ld.wild
+        run: |
+          WILD_PATH=$(which wild || true)
+          if [ -n "$WILD_PATH" ]; then
+            sudo ln -sf "$WILD_PATH" "$(dirname "$WILD_PATH")/ld.wild"
+            sudo ln -sf "$WILD_PATH" /usr/local/bin/ld.wild
+          fi
+
       - name: Run sccache
         uses: mozilla-actions/sccache-action@v0.0.11
 
@@ -85,6 +93,14 @@ jobs:
       - name: Install Wild linker
         uses: wild-linker/action@latest
 
+      - name: Symlink ld.wild
+        run: |
+          WILD_PATH=$(which wild || true)
+          if [ -n "$WILD_PATH" ]; then
+            sudo ln -sf "$WILD_PATH" "$(dirname "$WILD_PATH")/ld.wild"
+            sudo ln -sf "$WILD_PATH" /usr/local/bin/ld.wild
+          fi
+
       - name: Run sccache
         uses: mozilla-actions/sccache-action@v0.0.11
 
@@ -101,7 +117,7 @@ jobs:
         run: cargo test --locked --package personal-page --package game-server --package game-common --package xtask --profile ci
 
       - name: Test (WASM - game-common)
-        run: cargo test --locked --package game-common --target wasm32-unknown-unknown --no-run --profile ci
+        run: cargo test --locked --package game-common --target wasm32-unknown-unknown --profile ci
 
   check:
     name: Check
@@ -118,6 +134,14 @@ jobs:
 
       - name: Install Wild linker
         uses: wild-linker/action@latest
+
+      - name: Symlink ld.wild
+        run: |
+          WILD_PATH=$(which wild || true)
+          if [ -n "$WILD_PATH" ]; then
+            sudo ln -sf "$WILD_PATH" "$(dirname "$WILD_PATH")/ld.wild"
+            sudo ln -sf "$WILD_PATH" /usr/local/bin/ld.wild
+          fi
 
       - name: Run sccache
         uses: mozilla-actions/sccache-action@v0.0.11

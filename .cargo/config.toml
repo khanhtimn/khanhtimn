@@ -86,7 +86,8 @@ rustflags = [
     # Wild linker
     #
     # Install: `cargo binstall wild-linker` or `brew install wild-linker/wild/wild`
-    "-Clink-arg=--ld-path=wild",
+    # Note: ensure ld.wild symlink exists: `ln -s $(which wild) $(dirname $(which wild))/ld.wild`
+    "-Clink-arg=-fuse-ld=wild",
 
     # Mold linker (alternative)
     # "-Clink-arg=-fuse-ld=mold",
@@ -99,7 +100,7 @@ rustflags = [
 # See https://github.com/bevyengine/bevy/issues/12207 for details.
 rustdocflags = [
     # Wild linker
-    "-Clink-arg=--ld-path=wild",
+    "-Clink-arg=-fuse-ld=wild",
     # Mold linker
     # "-Clink-arg=-fuse-ld=mold",
 ]
