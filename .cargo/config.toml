@@ -81,13 +81,14 @@ dev = "run -p xtask -- dev"
 # For more information, see the blog post at <https://blog.rust-lang.org/2023/11/09/parallel-rustc.html>.
 
 [target.x86_64-unknown-linux-gnu]
+linker = "clang"
 rustflags = [
     # Wild linker
     #
     # Install: `cargo binstall wild-linker` or `brew install wild-linker/wild/wild`
     "-Clink-arg=--ld-path=wild",
 
-    # Mold linker
+    # Mold linker (alternative)
     # "-Clink-arg=-fuse-ld=mold",
 
     # Nightly

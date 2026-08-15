@@ -33,7 +33,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=--ld-path=wild -Zshare-generics=y -Zthreads=0" \
+    RUSTFLAGS="-C target-cpu=x86-64-v3 -C linker=clang -C link-arg=--ld-path=wild -Zshare-generics=y -Zthreads=0" \
     cargo chef cook --release --package personal-page --recipe-path recipe.json
 
 COPY . .
@@ -42,7 +42,7 @@ ENV RUSTFLAGS="-Zshare-generics=y -Zthreads=0 --cfg getrandom_backend=\"wasm_js\
 RUN cd crates/game/client && wasm-pack build --target web --out-dir ../../../assets/game/pkg --release
 
 ENV ASSETS_DIR="/app/assets"
-ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=--ld-path=wild -Zshare-generics=y -Zthreads=0"
+ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C linker=clang -C link-arg=--ld-path=wild -Zshare-generics=y -Zthreads=0"
 RUN mkdir -p /app/target/assets /app/dist && \
     cp -r /app/assets/* /app/target/assets/ 2>/dev/null || true && \
     topcoat asset bundle -p personal-page --release && \
@@ -54,13 +54,6 @@ FROM debian:bookworm-slim AS runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
-    bash \
-    curl \
-    findutils \
-    procps \
-    tree \
-    less \
-    file \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
