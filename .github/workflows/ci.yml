@@ -98,8 +98,17 @@ jobs:
       - name: Test (native)
         run: cargo test --locked --package personal-page --package game-server --package game-common --package xtask --profile ci
 
+      - name: Install binstall
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: Install wasm-pack
+        run: cargo binstall wasm-pack -y
+
       - name: Test (WASM - game-common)
-        run: cargo test --locked --package game-common --target wasm32-unknown-unknown --profile ci
+        run: cd crates/game/common && wasm-pack test --node --firefox --chrome --safari --headless
+
+      - name: Test (WASM - game-client)
+        run: cd crates/game/client && wasm-pack test --node --firefox --chrome --safari --headless
 
   check:
     name: Check
