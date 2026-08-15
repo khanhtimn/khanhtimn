@@ -20,6 +20,18 @@ dev = "run -p xtask -- dev"
 #
 # For more information, please see LLD's website at <https://lld.llvm.org>.
 #
+# ## Wild
+#
+# Wild is a very fast linker written in Rust with plans for incremental linking. It is faster than mold
+# and supports Linux (x86-64, ARM64, RISC-V).
+#
+# Wild can be installed via:
+#   - cargo binstall: `cargo binstall wild-linker`
+#   - brew: `brew install wild-linker/wild/wild`
+#   - cargo install: `cargo install --locked wild-linker`
+#
+# For more information, see <https://github.com/wild-linker/wild>.
+#
 # ## Mold
 #
 # Mold is a newer linker written by one of the authors of LLD. It boasts even greater performance, specifically
@@ -70,22 +82,23 @@ dev = "run -p xtask -- dev"
 
 [target.x86_64-unknown-linux-gnu]
 rustflags = [
+    # Wild linker
+    #
+    # Install: `cargo binstall wild-linker` or `brew install wild-linker/wild/wild`
+    "-Clink-arg=--ld-path=wild",
+
     # Mold linker
-    #
-    # You may need to install it:
-    #
-    # - Ubuntu: `sudo apt-get install mold clang`
-    # - Fedora: `sudo dnf install mold clang`
-    # - Arch: `sudo pacman -S mold clang`
     # "-Clink-arg=-fuse-ld=mold",
 
     # Nightly
-    # "-Zshare-generics=y",
-    # "-Zthreads=0",
+    "-Zshare-generics=y",
+    "-Zthreads=0",
 ]
 # Some systems may experience linker performance issues when running doc tests.
 # See https://github.com/bevyengine/bevy/issues/12207 for details.
 rustdocflags = [
+    # Wild linker
+    "-Clink-arg=--ld-path=wild",
     # Mold linker
     # "-Clink-arg=-fuse-ld=mold",
 ]

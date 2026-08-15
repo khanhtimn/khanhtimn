@@ -2,7 +2,6 @@ FROM rust:1-slim-bookworm AS chef
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     clang \
-    mold \
     curl \
     ca-certificates \
     pkg-config \
@@ -13,7 +12,7 @@ RUN rustup toolchain install nightly && \
 
 RUN curl -L --proto '=https' --tlsv1.2 -sSf \
     https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
-    cargo binstall cargo-chef -y
+    cargo binstall cargo-chef wild-linker -y
 
 WORKDIR /app
 
@@ -24,7 +23,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
 
-ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=-fuse-ld=mold -Zshare-generics=y -Zthreads=0"
+ENV RUSTFLAGS="-C target-cpu=x86-64-v3 -C link-arg=--ld-path=wild -Zshare-generics=y -Zthreads=0"
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
