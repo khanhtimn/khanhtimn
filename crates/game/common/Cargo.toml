@@ -15,3 +15,6 @@ bitflags = { workspace = true }
 bevy = { workspace = true, features = ["2d"] }
 bevy_enhanced_input = { workspace = true, features = ["default"] }
 bevy_common_assets = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test = { version = "0.3" }
