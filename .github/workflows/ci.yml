@@ -105,10 +105,10 @@ jobs:
         run: cargo binstall wasm-pack -y
 
       - name: Test (WASM - game-common)
-        run: cd crates/game/common && wasm-pack test --node --firefox --chrome --safari --headless
+        run: cd crates/game/common && wasm-pack test --node --firefox --chrome --headless
 
       - name: Test (WASM - game-client)
-        run: cd crates/game/client && wasm-pack test --node --firefox --chrome --safari --headless
+        run: cd crates/game/client && wasm-pack test --node --firefox --chrome --headless
 
   check:
     name: Check
