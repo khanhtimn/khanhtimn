@@ -12,8 +12,6 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: -Dwarnings -Zshare-generics=y -Zthreads=0 -Clinker=clang -Clink-arg=-fuse-ld=wild
-  RUSTDOCFLAGS: -Dwarnings -Zshare-generics=y -Zthreads=0
   RUSTC_WRAPPER: "sccache"
   SCCACHE_GHA_ENABLED: "true"
 
@@ -51,14 +49,6 @@ jobs:
       - name: Install Wild linker
         uses: wild-linker/action@latest
 
-      - name: Symlink ld.wild
-        run: |
-          WILD_PATH=$(which wild || true)
-          if [ -n "$WILD_PATH" ]; then
-            sudo ln -sf "$WILD_PATH" "$(dirname "$WILD_PATH")/ld.wild"
-            sudo ln -sf "$WILD_PATH" /usr/local/bin/ld.wild
-          fi
-
       - name: Run sccache
         uses: mozilla-actions/sccache-action@v0.0.11
 
@@ -72,10 +62,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang libasound2-dev libudev-dev libwayland-dev libx11-dev pkg-config
 
       - name: Clippy (native)
-        run: cargo clippy --locked --package personal-page --package game-server --package game-common --package xtask --all-targets --profile ci
+        run: cargo clippy --locked --package personal-page --package game-server --package game-common --package xtask --all-targets --profile ci -- -D warnings
 
       - name: Clippy (WASM)
-        run: cargo clippy --locked --package game-client --package game-common --target wasm32-unknown-unknown --profile ci
+        run: cargo clippy --locked --package game-client --package game-common --target wasm32-unknown-unknown --profile ci -- -D warnings
 
   tests:
     name: Tests
@@ -92,14 +82,6 @@ jobs:
 
       - name: Install Wild linker
         uses: wild-linker/action@latest
-
-      - name: Symlink ld.wild
-        run: |
-          WILD_PATH=$(which wild || true)
-          if [ -n "$WILD_PATH" ]; then
-            sudo ln -sf "$WILD_PATH" "$(dirname "$WILD_PATH")/ld.wild"
-            sudo ln -sf "$WILD_PATH" /usr/local/bin/ld.wild
-          fi
 
       - name: Run sccache
         uses: mozilla-actions/sccache-action@v0.0.11
@@ -134,14 +116,6 @@ jobs:
 
       - name: Install Wild linker
         uses: wild-linker/action@latest
-
-      - name: Symlink ld.wild
-        run: |
-          WILD_PATH=$(which wild || true)
-          if [ -n "$WILD_PATH" ]; then
-            sudo ln -sf "$WILD_PATH" "$(dirname "$WILD_PATH")/ld.wild"
-            sudo ln -sf "$WILD_PATH" /usr/local/bin/ld.wild
-          fi
 
       - name: Run sccache
         uses: mozilla-actions/sccache-action@v0.0.11
